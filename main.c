@@ -23,9 +23,9 @@
 */
 #include "general.h"  /* must always come first */
 
-#if defined HAVE_DECL___ENVIRON
+#if HAVE_DECL___ENVIRON
 #include <unistd.h>
-#elif defined HAVE_DECL__NSGETENVIRON
+#elif HAVE_DECL__NSGETENVIRON
 #include <crt_externs.h>
 #endif
 
@@ -534,9 +534,9 @@ static void sanitizeEnviron (void)
 	char **e = NULL;
 	int i;
 
-#if defined HAVE_DECL___ENVIRON
+#if HAVE_DECL___ENVIRON
 	e = __environ;
-#elif defined HAVE_DECL__NSGETENVIRON
+#elif HAVE_DECL__NSGETENVIRON
 	e = _NSGetEnviron();
 #endif
 
