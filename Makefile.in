@@ -36,6 +36,7 @@ DEFS	= @DEFS@
 CPPFLAGS = @CPPFLAGS@
 CFLAGS	= @CFLAGS@
 LDFLAGS	= @LDFLAGS@
+LIBOBJS = @LIBOBJS@
 LIBS	= @LIBS@
 EXEEXT	= @EXEEXT@
 OBJEXT	= @OBJEXT@
@@ -70,7 +71,7 @@ include $(srcdir)/source.mak
 .SUFFIXES:
 .SUFFIXES: .c .$(OBJEXT)
 
-VPATH	= $(srcdir) $(srcdir)/data/corpora $(srcdir)/data/optlib
+VPATH	= $(srcdir) $(srcdir)/data/corpora $(srcdir)/data/optlib $(srcdir)/fnmatch
 
 INSTALL		= cp -p
 INSTALL_PROG	= $(INSTALL)
