@@ -460,7 +460,7 @@ fi
 if test no != "$with_posix_regex"; then
 	AC_CHECK_FUNCS(regcomp,[],[
 AC_LIBOBJ([regex])
-CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE  -Dbool=int -Dfalse=0 -Dtrue=1 -I${srcdir}/gnu_regex"
+CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -D__USE_GNU=1 -Dbool=int -Dfalse=0 -Dtrue=1 -I${srcdir}/gnu_regex"
 AC_DEFINE(HAVE_REGCOMP,[],[xxx])
 ])
 	AC_MSG_CHECKING(if regcomp works)
