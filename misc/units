@@ -37,6 +37,12 @@ readonly _TIMEOUT_EXIT=124
 readonly _VG_TIMEOUT_FACTOR=10
 _VALGRIND_EXIT=58
 
+if [ -f /dev/stdout ]; then
+    _CONNECTED_TO_FILE=yes
+else
+    _CONNECTED_TO_FILE=no
+fi
+
 #
 # Results
 #
@@ -186,32 +192,44 @@ check_languages()
     return 0
 }
 
+decorate ()
+{
+    local decorator="$1"
+    local msg="$2"
+
+    if [ "${_CONNECTED_TO_FILE}" = 'no' ]; then
+	/usr/bin/echo -e "\e[0;${decorator}m${msg}\e[0m"
+    else
+	echo "${msg}"
+    fi
+}
+
 run_result_skip ()
 {
     if [ -n "$1" ]; then
-	echo -e "\e[0;33mskipped\e[0m"
+	/usr/bin/echo -e $(decorate 33 "skipped")
     else
-	echo -e "\e[0;33mskipped\e[0m ($1)"
+	/usr/bin/echo -e $(decorate 33 "skipped")" ($1)"
     fi
 }
 
 run_result_error ()
 {
     if [ ! -n "$1" ]; then
-	echo -e "\e[0;31mfailed\e[0m"
+	/usr/bin/echo -e $(decorate 31 "failed")
     else
-	echo -e "\e[0;31mfailed\e[0m ($1)"
+	/usr/bin/echo -e $(decorate 31 "failed")" ($1)"
     fi
 }
 
 run_result_ok ()
 {
-    echo -e "\e[0;32mpassed\e[0m"
+    /usr/bin/echo -e $(decorate 32 "passed")
 }
 
 run_result_known_error ()
 {
-    echo -e "\e[0;33mfailed\e[0m (KNOWN bug)"
+    /usr/bin/echo -e $(decorate 33 "failed")" (KNOWN bug)"
 }
 
 run_tcase ()
@@ -618,7 +636,7 @@ action_clean ()
 {
     local action="$1"
     shift
-    
+
     local units_dir=$1
     shift
 
@@ -627,7 +645,7 @@ action_clean ()
     elif [ -z "$units_dir" ]; then
 	ERROR 1 "UNITS_DIR parameter is not given in ${action} action"
     fi
-    
+
     if ! [ -d "$units_dir" ]; then
 	ERROR 1 "No such directory: ${UNITS_DIR}"
     fi
