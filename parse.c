@@ -1638,10 +1638,16 @@ extern boolean parseFile (const char *const fileName)
 		if (Option.filter)
 			openTagFile ();
 
+		if (LanguageTable [language]->use_cork)
+			corkTagFile();
+
 		tagFileResized = createTagsWithFallback (fileName, language);
 #ifdef HAVE_COPROC
 		tagFileResized = invokeXcmd (fileName, language)? TRUE: tagFileResized;
 #endif
+
+		if (LanguageTable [language]->use_cork)
+			uncorkTagFile();
 
 		if (Option.filter)
 			closeTagFile (tagFileResized);
