@@ -78,7 +78,13 @@ typedef struct sTagEntryInfo {
 		const char* fileScope;
 		const char* implementation;
 		const char* inheritance;
+
 		const char* scope [2];    /* value and key */
+		int         scope_index;  /* cork queue entry for upper scope tag.
+					     This field is meaningful if the value
+					     is not -1 and scope[0]  and scope[1] are
+					     NULL. */
+
 		const char* signature;
 
 		/* type (union/struct/etc.) and name for a variable or typedef. */
