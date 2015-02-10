@@ -26,7 +26,7 @@ static kindOption ClojureKinds[] = {
 	{TRUE, 'n', "namespace", "namespaces"}
 };
 
-static vString *CurrentNamespace;
+static int CurrentNamespace = -1;
 
 static int isNamespace (const unsigned char *strp)
 {
@@ -53,20 +53,19 @@ static void functionName (vString * const name, const unsigned char *dbp)
 
 static void makeNamespaceTag (vString * const name, const unsigned char *dbp)
 {
-	vStringClear (CurrentNamespace);
+	CurrentNamespace = -1;
 
 	functionName (name, dbp);
-	vStringCopy (CurrentNamespace, name);
-	if (vStringLength (CurrentNamespace) > 0)
+	if (vStringLength (name) > 0)
 	{
 		tagEntryInfo e;
-		initTagEntry (&e, vStringValue (CurrentNamespace));
+		initTagEntry (&e, vStringValue (name));
 		e.lineNumber = getSourceLineNumber ();
 		e.filePosition = getInputFilePosition ();
 		e.kindName = ClojureKinds[K_NAMESPACE].name;
 		e.kind = (char) ClojureKinds[K_NAMESPACE].letter;
 
-		makeTagEntry (&e);
+		CurrentNamespace = makeTagEntry (&e);
 	}
 }
 
@@ -82,11 +81,8 @@ static void makeFunctionTag (vString * const name, const unsigned char *dbp)
 		e.kindName = ClojureKinds[K_FUNCTION].name;
 		e.kind = (char) ClojureKinds[K_FUNCTION].letter;
 
-		if (vStringLength (CurrentNamespace) > 0)
-		{
-			e.extensionFields.scope[0] = ClojureKinds[K_NAMESPACE].name;
-			e.extensionFields.scope[1] = vStringValue (CurrentNamespace);
-		}
+		if (CurrentNamespace >= 0)
+			e.extensionFields.scope_index =  CurrentNamespace;
 
 		makeTagEntry (&e);
 	}
@@ -104,7 +100,6 @@ static void findClojureTags (void)
 {
 	vString *name = vStringNew ();
 	const unsigned char *p;
-	CurrentNamespace = vStringNew ();
 
 	while ((p = fileReadLine ()) != NULL)
 	{
@@ -128,7 +123,6 @@ static void findClojureTags (void)
 		}
 	}
 	vStringDelete (name);
-	vStringDelete (CurrentNamespace);
 }
 
 extern parserDefinition *ClojureParser (void)
@@ -146,6 +140,7 @@ extern parserDefinition *ClojureParser (void)
 	def->extensions = extensions;
 	def->aliases = aliases;
 	def->parser = findClojureTags;
+	def->use_cork = TRUE;
 	return def;
 }
 
