@@ -24,6 +24,7 @@
 
 #include "ctags.h"
 #include "debug.h"
+#include "keyword.h"
 #include "main.h"
 #define OPTION_WRITE
 #include "options.h"
@@ -1492,6 +1493,22 @@ static void processListAliasesOption (
 	exit (0);
 }
 
+static void processListKeywords (
+		const char *const option, const char *const parameter)
+{
+	if (parameter [0] == '\0' || strcasecmp (parameter, "all") == 0)
+		printKeywordTable (LANG_AUTO);
+	else
+	{
+		langType language = getNamedLanguage (parameter);
+		if (language == LANG_IGNORE)
+			error (FATAL, "Unknown language \"%s\" in \"%s\" option", parameter, option);
+		else
+			printKeywordTable (language);
+	}
+	exit (0);
+}
+
 static void processListKindsOption (
 		const char *const option, const char *const parameter)
 {
@@ -2009,6 +2026,7 @@ static parametricOption ParametricOptions [] = {
 	{ "list-aliases",           processListAliasesOption,       TRUE    },
 	{ "list-corpora",           processListCorporaOption,       TRUE    },
 	{ "list-features",          processListFeaturesOption,      TRUE    },
+	{ "_list-keywords",         processListKeywords,            TRUE    },
 	{ "list-kinds",             processListKindsOption,         TRUE    },
 	{ "list-languages",         processListLanguagesOption,     TRUE    },
 	{ "list-maps",              processListMapsOption,          TRUE    },

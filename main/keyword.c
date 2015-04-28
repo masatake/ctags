@@ -199,25 +199,35 @@ extern int analyzeToken (vString *const name, langType language)
 	return result;
 }
 
-#ifdef DEBUG
-
-static void printEntry (const hashEntry *const entry)
+static void printEntry (const hashEntry *const entry, langType language)
 {
-	printf ("  %-15s %-7s\n", entry->string, getLanguageName (entry->language));
+	if (language == LANG_AUTO)
+		printf ("  %-15s %-7s\n", entry->string, getLanguageName (entry->language));
+	else
+		printf ("%s\n", entry->string);
 }
 
-static unsigned int printBucket (const unsigned int i)
+static unsigned int printBucket (const unsigned int i, langType language)
 {
 	hashEntry **const table = getHashTable ();
 	hashEntry *entry = table [i];
 	unsigned int measure = 1;
-	boolean first = TRUE;
+	boolean __unused__ first = TRUE;
 
+#ifdef DEBUG
 	printf ("%2d:", i);
+#endif
 	if (entry == NULL)
+	{
+#ifdef DEBUG
 		printf ("\n");
+#endif
+	}
 	else while (entry != NULL)
 	{
+		if (language != LANG_AUTO && language != entry->language)
+			goto next;
+#ifdef DEBUG
 		if (! first)
 			printf ("    ");
 		else
@@ -225,14 +235,16 @@ static unsigned int printBucket (const unsigned int i)
 			printf (" ");
 			first = FALSE;
 		}
-		printEntry (entry);
+#endif
+		printEntry (entry, language);
+	  next:
 		entry = entry->next;
 		measure = 2 * measure;
 	}
 	return measure - 1;
 }
 
-extern void printKeywordTable (void)
+extern void printKeywordTable (langType language)
 {
 	unsigned long emptyBucketCount = 0;
 	unsigned long measure = 0;
@@ -240,17 +252,19 @@ extern void printKeywordTable (void)
 
 	for (i = 0  ;  i < TableSize  ;  ++i)
 	{
-		const unsigned int pass = printBucket (i);
+		const unsigned int pass = printBucket (i, language);
 
 		measure += pass;
 		if (pass == 0)
 			++emptyBucketCount;
 	}
 
+#ifdef DEBUG
 	printf ("spread measure = %ld\n", measure);
 	printf ("%ld empty buckets\n", emptyBucketCount);
+#endif
 }
 
-#endif
+
 
 /* vi:set tabstop=4 shiftwidth=4: */

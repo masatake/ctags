@@ -22,9 +22,7 @@
 extern void addKeyword (const char *const string, langType language, int value);
 extern int lookupKeyword (const char *const string, langType language);
 extern void freeKeywordTable (void);
-#ifdef DEBUG
-extern void printKeywordTable (void);
-#endif
+extern void printKeywordTable (langType language);
 extern int analyzeToken (vString *const name, langType language);
 
 #endif  /* _KEYWORD_H */
