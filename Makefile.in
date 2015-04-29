@@ -395,11 +395,23 @@ fuzz: $(CTAGS_TEST)
 	$(SHELL) $${c} Units
 
 #
-# NOISE Target
+# Character based NOISE Target
 #
 noise: $(CTAGS_TEST)
 	@ \
 	c="misc/units noise \
+		--ctags=$(CTAGS_TEST) \
+		--languages=$(LANGUAGES) \
+		$(VALGRIND) $(RUN_SHRINK) \
+		--with-timeout=$(TIMEOUT)"; \
+	$(SHELL) $${c} Units
+
+#
+# Keyword based NOISE Target
+#
+knoise: $(CTAGS_TEST)
+	@ \
+	c="misc/units knoise \
 		--ctags=$(CTAGS_TEST) \
 		--languages=$(LANGUAGES) \
 		$(VALGRIND) $(RUN_SHRINK) \
