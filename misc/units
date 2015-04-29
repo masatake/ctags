@@ -81,6 +81,8 @@ Usage:
 	$(help_shrink)
 
 	$(help_noise)
+
+	$(help_knoise)
 EOF
 }
 
@@ -1548,6 +1550,222 @@ $0 noise [OPTIONS] UNITS-DIR
 EOF
 }
 
+
+knoise_report_line ()
+{
+    :
+}
+
+knoise_lang_file_noisespec ()
+{
+    local input="$1"
+    local pos="$2"
+    local poison="$3"
+    local lang="$4"
+    local kwd="$5"
+    shift 5
+
+    local msg=INJECTED
+    local k=$(echo "$kwd" | sed -e s'#/#-slash-#')
+
+    local dir="${input%/*}"
+    local onoised=$(printf "%s/KNOISE-INPUT-%s-%s-%s.tmp" "${dir}" "${msg}" "$pos" "$k")
+    local ocmdline=$(printf "%s/KNOISE-CMDLINE-%s-%s-%s.tmp" "${dir}" "${msg}" "$pos" "$k")
+    local ovalgrind=$(printf "%s/KNOISE-VALGRIND-%s-%s-%s.tmp" "${dir}" "${msg}" "$pos" "$k")
+    local oshrink=$(printf "%s/KNOISE-SHRINK-%s-%s-%s.tmp" "${dir}" "${msg}" "$pos" "$k")
+
+    local cmdline
+    local cmdline_for_shirking
+    local progress_offset
+    local r
+
+    rm -f "${ocmdline}" "${ovalgrind}" "${onoised}" "${oshrink}"
+    if [ "${WITH_VALGRIND}" = 'yes' ]; then
+	cmdline=$( printf "${_CMDLINE} --language-force=${lang} ${onoised}" "${ovalgrind}" )
+	else
+	cmdline="${_CMDLINE} --language-force=${lang} ${onoised}"
+    fi
+    cmdline_for_shirking="${_CMDLINE_FOR_SHRINKING} --language-force=${lang} %s"
+
+    {
+	dd bs=1 count=$(( pos - 1 )) skip=0 if="$input"
+	echo -n "${poison}"
+	dd bs=1 skip=$pos if="$input"
+    } > "$onoised"  2> /dev/null
+
+    # progress_offset=$(( pos % _NOISE_REPORT_MAX_COLUMN ))
+    # if [ "${progress_offset}" -eq 0 ]; then
+    #	[ $pos -gt 0 ] && printf " %s %d/%d" "${how}" "$pos" "${len}"
+    #	echo
+    # fi
+    # echo ${lang}.${input} '<'${kwd}'>'@${pos}
+    echo "${cmdline}" > "${ocmdline}"
+    ( exec 2>&-; ${cmdline} 2> /dev/null > /dev/null )
+    r=$?
+    case $r in
+	    0)
+	    rm "${onoised}"
+	    rm -f "${ovalgrind}" "${ocmdline}"
+	    ;;
+	${_TIMEOUT_EXIT})
+	    printf ": T(${poison})"
+	    printf '\n%-20s\n' "[timeout $lang]" "$onoised"
+	    [ "${RUN_SHRINK}" = 'yes' ] && fuzz_shrink "${cmdline_for_shirking}" "${onoised}" "${oshrink}" "${lang}"
+	    ;;
+	${_VALGRIND_EXIT})
+	    printf ": V(${poison})"
+	    printf '\n%-20s %s\n' "[valgrind-error $lang]" "$onoised"
+	    ;;
+	*)
+	    printf ": !(${poison})"
+	    printf '\n%-20s %s\n' "[unexpected-status($r) $lang]" "$onoised"
+	    [ "${RUN_SHRINK}" = 'yes' ] && fuzz_shrink "${cmdline_for_shirking}" "${onoised}" "${oshrink}" "${lang}"
+	    ;;
+    esac
+    return $r
+}
+
+knoise_enum_puncts ()
+{
+    local line
+    local len
+    local current=0
+
+    while IFS= read line; do
+	if [ ${current} != 0 ]; then
+	    current=$(( ++ current ))
+	    # echo ${current}
+	fi
+
+	len=${#line}
+	while i=$(expr match + "${line}"  '[^[:punct:]]*[[:punct:]]'); do
+	    current=$((current + i))
+	    echo $((current))
+	    line=$(expr substr + "${line}" $((i + 1)) $((len - i)))
+	    len=${#line}
+	done
+	current=$((current + len))
+    done
+}
+
+
+knoise_make_noise()
+{
+    local kwd=$1
+    local punct=$2
+
+    printf " %s %s" ${kwd} ${punct}; echo
+    printf " %s%s"  ${kwd} ${punct}; echo
+    printf " %s "   ${kwd}; echo
+    printf " %s%s"  ${punct} ${kwd}; echo
+    printf " %s %s" ${punct} ${kwd}; echo
+}
+
+knoise_lang_file ()
+{
+    local lang="$1"
+    local input="$2"
+    shift 2
+    local keywords=$@
+
+    local cmdline
+    local cmdline_for_shirking
+    local pos
+    local p
+    local kwd
+    local guessed_lang
+
+    guessed_lang=$( ${_CMDLINE_FOR_SHRINKING} --print-language "${input}" 2>/dev/null | sed -n 's/^.*: //p')
+    if [ "${lang}" !=  "${guessed_lang}" ]; then
+	return 0
+    fi
+
+    echo "Testing cases derived from: ${input}"
+    line '.'
+
+    for pos in $(knoise_enum_puncts < "${input}"); do
+	punkt=$(dd bs=1 count=1 skip=$((pos - 1)) if="${input}" 2>/dev/null)
+	echo "<<Injecting poisons at ${pos} where \'$punkt\' is>>"
+	for kwd in ${keywords}; do
+	    echo -n "${kwd} "
+	    for k in $(knoise_make_noise "${kwd}" "${punkt}"); do
+		if ! knoise_lang_file_noisespec "${input}" "$pos" "$k" "${lang}" "${kwd}"; then
+		    echo
+		    return 1
+		fi
+	    done
+	done
+	echo
+    done
+    echo
+    return 0;
+}
+
+knoise_lang ()
+{
+    local lang="$1"
+    local dir="$2"
+    shift 2
+    local f
+    local r
+
+    local cmdline
+    local keywords
+
+    if ! keywords=$("${CTAGS}" --_list-keywords=$lang | sort); then
+	ERROR 1 "unexepcted result when listing keywords for ${lang}: ${CTAGS} --_list-keywords=$lang"
+    fi
+
+    if [ -z "${keywords}" ]; then
+	# echo "(No keyword is defined in ${lang})"
+	return 0;
+    fi
+
+    printf '%-60s\n' "Keyword noised-fuzzing (${lang})"
+    line '-'
+
+    r=0
+    for f in $(find "${dir}" -type f -name 'input.*'); do
+	if ! knoise_lang_file "${lang}" "${f}" ${keywords}; then
+	    r=1
+	    break
+	fi
+    done
+    echo
+    return $r
+}
+
+action_knoise ()
+{
+    action_fuzz_common knoise_lang "$@"
+}
+
+help_knoise ()
+{
+    cat <<EOF
+$0 knoise [OPTION] UNITS-DIR
+	   Run all tests case for LANGUAGE with "keyword noise" for
+	   finding unexepcted behavior like entering an
+	   infinite loop.
+	   Here "keyword noise" means injecting a target language
+	   own keyword to somewhere file position where a punctuation
+	   appears in the original test case.
+
+	   OPTIONS:
+		--ctags CTAGS: ctags exectuable file for testing
+		--datadir DATADIR: data directory
+		--languages PARSER1[,PARSER2,...]: run only PARSER* related cases
+		--quiet: don't print dots as passed test cases.
+		--with-timeout DURATION: run a test case under timeout
+					 command with SECOND.
+					 0 means no timeout.
+					 default is 1.
+		--with-valgrind: run a test case under valgrind
+			       If this option given, DURATION is changed to
+			       DURATION := DURATION * ${_VG_TIMEOUT_FACTOR}
+EOF
+}
+
 # Avoid issues between sed and the locale settings by overriding it using
 # LC_ALL, which takes precedence over all other locale configurations:
 # https://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
@@ -1586,6 +1804,10 @@ main ()
 	    ;;
 	shrink)
 	    action_shrink "$@"
+	    return $?
+	    ;;
+	knoise)
+	    action_knoise "$@"
 	    return $?
 	    ;;
 	*)
