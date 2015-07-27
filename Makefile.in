@@ -459,8 +459,7 @@ codecheck:
 #
 # Report coverage (usable only if ctags is built with COVERAGE=1.)
 #
-run-gcov:
-	$(CTAGS_TEST) -o - $$(find ./Units -name 'input.*'| grep -v '.*b/.*') > /dev/null
+run-gcov: check
 	gcov $$(find -name '*.gcda')
 
 clean-gcov:
