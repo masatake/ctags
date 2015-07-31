@@ -1,0 +1,6 @@
+--languages=-Ruby
+--langdef=ripper-ruby{fileKind=!}
+--languages=+ripper-ruby
+--map-ripper-ruby=+.rb
+--xcmd-ripper-ruby=ripper-tags
+
