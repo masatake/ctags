@@ -1176,20 +1176,6 @@ static boolean doesParserUseKind (const parserDefinition *const parser, char let
 	return FALSE;
 }
 
-static void initializeParsers (void)
-{
-	unsigned int i;
-	for (i = 0  ;  i < LanguageCount  ;  ++i)
-	{
-		if (LanguageTable [i]->initialize != NULL)
-			(LanguageTable [i]->initialize) ((langType) i);
-
-		Assert (LanguageTable [i]->fileKind != KIND_NULL);
-		Assert (!doesParserUseKind (LanguageTable [i],
-					    LanguageTable [i]->fileKind));
-	}
-}
-
 extern void initializeParsing (void)
 {
 	unsigned int builtInCount;
@@ -1230,7 +1216,6 @@ extern void initializeParsing (void)
 		}
 	}
 	verbose ("\n");
-	initializeParsers ();
 }
 
 extern void freeParserResources (void)
@@ -1781,25 +1766,29 @@ static rescanReason createTagsForFile (
 	Assert (0 <= language  &&  language < (int) LanguageCount);
 	if (fileOpen (fileName, language))
 	{
-		const parserDefinition* const lang = LanguageTable [language];
+		parserDefinition *const lang = LanguageTable [language];
+
+		if (lang->initialize != NULL)
+		{
+			parserInitialize init = lang->initialize;
+			lang->initialize = NULL;
+			init(language);
+			Assert (lang->fileKind != KIND_NULL);
+			Assert (!doesParserUseKind (lang,
+						    lang->fileKind));
+		}
+
+		Assert (lang->parser || lang->parser2);
 
 		if (LanguageTable [language]->useCork)
 			corkTagFile();
 
 		makeFileTag (fileName);
 
-	  retry:
 		if (lang->parser != NULL)
 			lang->parser ();
 		else if (lang->parser2 != NULL)
 			rescan = lang->parser2 (passCount);
-		else if (lang->initialize != NULL)
-		{
-			parserInitialize init = lang->initialize;
-			init(language);
-			Assert (lang->parser || lang->parser2);
-			goto retry;
-		}
 
 		if (LanguageTable [language]->useCork)
 			uncorkTagFile();
