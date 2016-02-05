@@ -182,6 +182,8 @@ static void addAccessFields (tagEntryInfo *const entry,
 static void makeFunctionTagFull (tagEntryInfo *tag, vString *const function,
 				 vString *const parent, int is_class_parent, const char *arglist)
 {
+	char scope_kind_letter = KIND_NULL;
+
 	if (is_class_parent)
 	{
 		if (!PythonKinds[K_MEMBER].enabled)
@@ -202,6 +204,7 @@ static void makeFunctionTagFull (tagEntryInfo *tag, vString *const function,
 			tag->kind = &(PythonKinds[K_MEMBER]);
 			tag->extensionFields.scopeKind = &(PythonKinds[K_CLASS]);
 			tag->extensionFields.scopeName = vStringValue (parent);
+			scope_kind_letter = PythonKinds[K_CLASS].letter;
 		}
 		else
 		{
@@ -214,6 +217,27 @@ static void makeFunctionTagFull (tagEntryInfo *tag, vString *const function,
 		vStringLength (parent) > 0, is_class_parent);
 
 	makeTagEntry (tag);
+
+	if (isXtagEnabled(XTAG_QUALIFIED_TAGS)
+	    && (scope_kind_letter != KIND_NULL)
+	    && tag->extensionFields.scopeName)
+	{
+		tagEntryInfo extended_tag;
+		const char *sep;
+		vString* extended_name;
+
+		extended_tag = *tag;
+
+		sep = scopeSeparatorFor (tag->kind, scope_kind_letter);
+		extended_name = vStringNewInit (tag->extensionFields.scopeName);
+		vStringCatS (extended_name, sep);
+		vStringCatS (extended_name, tag->name);
+
+		extended_tag.name = vStringValue (extended_name);
+		makeTagEntry (&extended_tag);
+		vStringDelete (extended_name);
+	}
+
 }
 
 static void makeFunctionTag (vString *const function,
