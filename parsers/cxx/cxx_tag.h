@@ -35,7 +35,7 @@ enum CXXTagKind
 	CXXTagKindEXTERNVAR,
 	CXXTagKindPARAMETER,
 	CXXTagKindLABEL,
-	CXXTagKindUSINGSYM
+	CXXTagKindUNKNOWN,
 };
 
 kindOption * cxxTagGetKindOptions(void);
@@ -83,5 +83,9 @@ typedef enum {
 typedef enum {
 	CXX_NAMESPACE_USED,
 } cxxNamespaceRole;
+
+typedef enum {
+	CXX_MEMBER_IMPORTED,
+} cxxMemberRole;
 
 #endif //!_cxxTag_h_

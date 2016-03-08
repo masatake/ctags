@@ -20,6 +20,10 @@ static roleDesc CxxNamespaceRoles [] = {
 	{ TRUE, "used", "namespace referenced in using statement" },
 };
 
+static roleDesc CxxMemberRoles [] = {
+	{ TRUE, "imported", "member imported with using declaration" },
+};
+
 static roleDesc CMacroRoles [] = {
 	RoleTemplateUndef,
 };
@@ -37,7 +41,7 @@ static kindOption g_aCXXKinds [] = {
 	{ TRUE,  'g', "enum",       "enumeration names" },
 	{ FALSE, 'h', "header",     "included header files", .referenceOnly = TRUE,  ATTACH_ROLES(CHeaderRoles)},
 	{ FALSE, 'l', "local",      "local variables" },
-	{ TRUE,  'm', "member",     "class, struct, and union members" },
+	{ TRUE,  'm', "member",     "class, struct, and union members", .referenceOnly = FALSE, ATTACH_ROLES(CxxMemberRoles) },
 	{ TRUE,  'n', "namespace",  "namespaces", .referenceOnly = FALSE, ATTACH_ROLES(CxxNamespaceRoles)},
 	{ FALSE, 'p', "prototype",  "function prototypes" },
 	{ TRUE,  's', "struct",     "structure names" },
@@ -47,7 +51,6 @@ static kindOption g_aCXXKinds [] = {
 	{ FALSE, 'x', "externvar",  "external and forward variable declarations" },
 	{ FALSE, 'z', "parameter",  "function parameters inside function definitions" },
 	{ FALSE, 'L', "label",      "goto labels" },
-	{ FALSE, 'S', "usingsym",   "using non-namespace symbol statements", .referenceOnly = TRUE }
 };
 
 static const char * g_aCXXAccessStrings [] = {

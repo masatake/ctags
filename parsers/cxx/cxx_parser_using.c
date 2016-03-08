@@ -106,14 +106,15 @@ boolean cxxParserParseUsingClause(void)
 					);
 			} else {
 				CXX_DEBUG_PRINT("Found usingsym clause '%s'",vStringValue(pFirst->pszWord));
-	
-				tag = cxxTagBegin(
+
+				tag = cxxRefTagBegin(
 						vStringValue(pFirst->pszWord),
-						CXXTagKindUSINGSYM,
+						CXXTagKindMEMBER,
+						CXX_MEMBER_IMPORTED,
 						pFirst
 					);
 			}
-	
+
 			if(tag)
 			{
 				tag->isFileScope = (cxxScopeGetKind() == CXXTagKindNAMESPACE) && !isInputHeaderFile();

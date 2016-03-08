@@ -1,8 +1,8 @@
 A	input.cpp	/^class A$/;"	class	file:
-A::test	input.cpp	/^	using A::test;$/;"	usingsym	class:B
+A::test	input.cpp	/^	using A::test;$/;"	member	class:B	role:imported
 B	input.cpp	/^class B : public A$/;"	class	file:
 std	input.cpp	/^using namespace std;$/;"	namespace	file:	role:used
-std::string	input.cpp	/^using std::string;$/;"	usingsym	file:
+std::string	input.cpp	/^using std::string;$/;"	member	file:	role:imported
 string	input.cpp	/^#include <string>/;"	header	role:system
 test	input.cpp	/^	void test();$/;"	prototype	class:A	file:	signature:()
 test	input.cpp	/^	void test(x t);$/;"	prototype	class:B	file:	signature:(x t)
