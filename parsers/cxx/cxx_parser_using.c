@@ -97,10 +97,11 @@ boolean cxxParserParseUsingClause(void)
 			if(bUsingNamespace)
 			{
 				CXX_DEBUG_PRINT("Found usingns clause '%s'",vStringValue(pFirst->pszWord));
-	
-				tag = cxxTagBegin(
+
+				tag = cxxRefTagBegin(
 						vStringValue(pFirst->pszWord),
-						CXXTagKindUSINGNS,
+						CXXTagKindNAMESPACE,
+						CXX_NAMESPACE_USED,
 						pFirst
 					);
 			} else {

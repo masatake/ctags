@@ -35,7 +35,6 @@ enum CXXTagKind
 	CXXTagKindEXTERNVAR,
 	CXXTagKindPARAMETER,
 	CXXTagKindLABEL,
-	CXXTagKindUSINGNS,
 	CXXTagKindUSINGSYM
 };
 
@@ -80,5 +79,9 @@ typedef enum {
 	CR_HEADER_SYSTEM,
 	CR_HEADER_LOCAL,
 } cHeaderRole;
+
+typedef enum {
+	CXX_NAMESPACE_USED,
+} cxxNamespaceRole;
 
 #endif //!_cxxTag_h_
