@@ -118,6 +118,34 @@ tagEntryInfo * cxxTagBegin(
 	return &g_oCXXTag;
 }
 
+tagEntryInfo * cxxRefTagBegin(
+		const char * szName,
+		enum CXXTagKind eKindId,
+		int roleIndex,
+		CXXToken * pRefCXXToken
+	)
+{
+	/*
+	 * Do the same as what makeSimpleRefTag does
+	 */
+
+	tagEntryInfo *e;
+
+	if (! isXtagEnabled (XTAG_REFERENCE_TAGS))
+		return NULL;
+
+	CXX_DEBUG_ASSERT (roleIndex < g_aCXXKinds[eKindId].nRoles,
+			  "given roleIndex value is out of range");
+	if (!g_aCXXKinds[eKindId].roles[roleIndex].enabled)
+		return NULL;
+
+	e = cxxTagBegin (szName, eKindId, pRefCXXToken);
+	if (e)
+		e->extensionFields.roleIndex = roleIndex;
+
+	return e;
+}
+
 void cxxTagCommit(void)
 {
 	if(g_oCXXTag.isFileScope && !isXtagEnabled(XTAG_FILE_SCOPE))

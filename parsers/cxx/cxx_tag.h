@@ -54,6 +54,13 @@ tagEntryInfo * cxxTagBegin(
 		CXXToken * pRefCXXToken
 	);
 
+tagEntryInfo * cxxRefTagBegin(
+		const char * szName,
+		enum CXXTagKind eKindId,
+		int roleIndex,
+		CXXToken * pRefCXXToken
+	);
+
 // Commit the composed tag. Must follow a succesfull cxxTagBegin() call.
 void cxxTagCommit(void);
 
