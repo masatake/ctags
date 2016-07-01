@@ -55,11 +55,15 @@ static const char *const PythonAccesses[COUNT_ACCESS] = {
 };
 
 typedef enum {
+	F_DECORATORS,
 	F_END,
 	COUNT_FIELD
 } pythonField;
 
 static fieldSpec PythonFields[COUNT_FIELD] = {
+	{ .name = "decorators",
+	  .description = "decorators on functions and classes",
+	  .enabled = FALSE },
 	{ .name = "end",
 	  .description = "end lines of various constructs",
 	  .enabled = FALSE },
@@ -73,6 +77,8 @@ typedef enum {
 	K_NAMESPACE,
 	K_MODULE,
 	K_UNKNOWN,
+	K_PARAMETER,
+	K_LOCAL_VARIABLE,
 	COUNT_KIND
 } pythonKind;
 
@@ -130,6 +136,8 @@ static kindOption PythonKinds[COUNT_KIND] = {
 	 .referenceOnly = TRUE,  ATTACH_ROLES(PythonModuleRoles)},
 	{TRUE, 'x', "unknown",   "name referring a classe/variable/function/module defined in other module",
 	 .referenceOnly = FALSE, ATTACH_ROLES(PythonUnknownRoles)},
+	{FALSE, 'z', "parameter", "function parameters" },
+	{FALSE, 'l', "local",    "local variables" },
 };
 
 typedef struct {
@@ -267,7 +275,8 @@ static void initPythonEntry (tagEntryInfo *const e, const tokenInfo *const token
 }
 
 static int makeClassTag (const tokenInfo *const token,
-                         vString *const inheritance)
+                         const vString *const inheritance,
+                         const vString *const decorators)
 {
 	if (PythonKinds[K_CLASS].enabled)
 	{
@@ -276,6 +285,11 @@ static int makeClassTag (const tokenInfo *const token,
 		initPythonEntry (&e, token, K_CLASS);
 
 		e.extensionFields.inheritance = inheritance ? vStringValue (inheritance) : "";
+		if (decorators && vStringLength (decorators) > 0)
+		{
+			attachParserField (&e, PythonFields[F_DECORATORS].ftype,
+			                   vStringValue (decorators));
+		}
 
 		return makeTagEntry (&e);
 	}
@@ -284,7 +298,8 @@ static int makeClassTag (const tokenInfo *const token,
 }
 
 static int makeFunctionTag (const tokenInfo *const token,
-                            const vString *const arglist)
+                            const vString *const arglist,
+                            const vString *const decorators)
 {
 	if (PythonKinds[K_FUNCTION].enabled)
 	{
@@ -294,6 +309,11 @@ static int makeFunctionTag (const tokenInfo *const token,
 
 		if (arglist)
 			e.extensionFields.signature = vStringValue (arglist);
+		if (decorators && vStringLength (decorators) > 0)
+		{
+			attachParserField (&e, PythonFields[F_DECORATORS].ftype,
+			                   vStringValue (decorators));
+		}
 
 		return makeTagEntry (&e);
 	}
@@ -542,10 +562,15 @@ getNextChar:
 			int d = getcFromInputFile ();
 			vStringPut (token->string, c);
 			if (d != '=')
+			{
 				ungetcToInputFile (d);
+				token->type = c;
+			}
 			else
+			{
 				vStringPut (token->string, d);
-			token->type = TOKEN_OPERATOR;
+				token->type = TOKEN_OPERATOR;
+			}
 			break;
 		}
 
@@ -817,11 +842,14 @@ static boolean readCDefName (tokenInfo *const token, pythonKind *kind)
 	return token->type == TOKEN_IDENTIFIER;
 }
 
-static boolean parseClassOrDef (tokenInfo *const token, pythonKind kind,
-                                boolean isCDef)
+static boolean parseClassOrDef (tokenInfo *const token,
+                                const vString *const decorators,
+                                pythonKind kind, boolean isCDef)
 {
 	vString *arglist = NULL;
 	tokenInfo *name = NULL;
+	tokenInfo *parameterTokens[16] = { NULL };
+	unsigned int parameterCount = 0;
 	NestingLevel *lv;
 	int corkIndex;
 
@@ -841,16 +869,59 @@ static boolean parseClassOrDef (tokenInfo *const token, pythonKind kind,
 	copyToken (name, token);
 
 	readToken (token);
+	/* collect parameters or inheritance */
 	if (token->type == '(')
 	{
+		int prevTokenType = token->type;
+		int depth = 1;
+
 		arglist = vStringNew ();
-		skipOverPair (token, '(', ')', arglist, kind != K_CLASS);
+		if (kind != K_CLASS)
+			reprCat (arglist, token);
+
+		do
+		{
+			if (token->type != TOKEN_WHITESPACE &&
+			    /* for easy `*args` and `**kwargs` support, we also ignore
+			     * `*`, which anyway can't otherwise screw us up */
+			    token->type != '*')
+			{
+				prevTokenType = token->type;
+			}
+
+			readTokenFull (token, TRUE);
+			if (kind != K_CLASS || token->type != ')' || depth > 1)
+				reprCat (arglist, token);
+
+			if (token->type == '(' ||
+			    token->type == '[' ||
+			    token->type == '{')
+				depth ++;
+			else if (token->type == ')' ||
+			         token->type == ']' ||
+			         token->type == '}')
+				depth --;
+			else if (kind != K_CLASS && depth == 1 &&
+			         token->type == TOKEN_IDENTIFIER &&
+			         (prevTokenType == '(' || prevTokenType == ',') &&
+			         parameterCount < ARRAY_SIZE (parameterTokens) &&
+			         PythonKinds[K_PARAMETER].enabled)
+			{
+				tokenInfo *parameterName = newToken ();
+
+				copyToken (parameterName, token);
+				parameterTokens[parameterCount++] = parameterName;
+			}
+		}
+		while (token->type != TOKEN_EOF && depth > 0);
+
+		vStringTerminate (arglist);
 	}
 
 	if (kind == K_CLASS)
-		corkIndex = makeClassTag (name, arglist);
+		corkIndex = makeClassTag (name, arglist, decorators);
 	else
-		corkIndex = makeFunctionTag (name, arglist);
+		corkIndex = makeFunctionTag (name, arglist, decorators);
 
 	lv = nestingLevelsPush (PythonNestingLevels, corkIndex);
 	PY_NL (lv)->indentation = token->indent;
@@ -858,7 +929,235 @@ static boolean parseClassOrDef (tokenInfo *const token, pythonKind kind,
 	deleteToken (name);
 	vStringDelete (arglist);
 
+	if (parameterCount > 0)
+	{
+		unsigned int i;
+
+		for (i = 0; i < parameterCount; i++)
+		{
+			makeSimplePythonTag (parameterTokens[i], K_PARAMETER);
+			deleteToken (parameterTokens[i]);
+		}
+	}
+
 	return TRUE;
+}
+
+static boolean parseImport (tokenInfo *const token)
+{
+	tokenInfo *fromModule = NULL;
+
+	if (token->keyword == KEYWORD_from)
+	{
+		readQualifiedName (token);
+		if (token->type == TOKEN_IDENTIFIER)
+		{
+			fromModule = newToken ();
+			copyToken (fromModule, token);
+			readToken (token);
+		}
+	}
+
+	if (token->keyword == KEYWORD_import)
+	{
+		boolean parenthesized = FALSE;
+
+		if (fromModule)
+		{
+			/* from X import ...
+			 * --------------------
+			 * X = (kind:module, role:namespace) */
+			makeSimplePythonRefTag (fromModule, NULL, K_MODULE,
+			                        PYTHON_MODULE_NAMESPACE,
+			                        XTAG_UNKNOWN);
+		}
+
+		do
+		{
+			readQualifiedName (token);
+
+			/* support for `from x import (...)` */
+			if (fromModule && ! parenthesized && token->type == '(')
+			{
+				parenthesized = TRUE;
+				readQualifiedName (token);
+			}
+
+			if (token->type == TOKEN_IDENTIFIER)
+			{
+				tokenInfo *name = newToken ();
+
+				copyToken (name, token);
+				readToken (token);
+				/* if there is an "as", use it as the name */
+				if (token->keyword == KEYWORD_as)
+				{
+					readToken (token);
+					if (token->type == TOKEN_IDENTIFIER)
+					{
+						if (fromModule)
+						{
+							/* from x import Y as Z
+							 * ----------------------------
+							 * x = (kind:module,  role:namespace),
+							 * Y = (kind:unknown, role:indirectly-imported),
+							 * Z = (kind:unknown) */
+
+							/* Y */
+							makeSimplePythonRefTag (name, NULL, K_UNKNOWN,
+							                        PYTHON_UNKNOWN_INDIRECTLY_IMPORTED,
+							                        XTAG_UNKNOWN);
+							/* x.Y */
+							if (isXtagEnabled (XTAG_QUALIFIED_TAGS))
+							{
+								vString *fq = vStringNewCopy (fromModule->string);
+								vStringPut (fq, '.');
+								vStringCat (fq, name->string);
+								makeSimplePythonRefTag (name, fq, K_UNKNOWN,
+								                        PYTHON_UNKNOWN_INDIRECTLY_IMPORTED,
+								                        XTAG_QUALIFIED_TAGS);
+								vStringDelete (fq);
+							}
+							/* Z */
+							makeSimplePythonTag (token, K_UNKNOWN);
+						}
+						else
+						{
+							/* import x as Y
+							 * ----------------------------
+							 * X = (kind:module, role:indirectly-imported)
+							 * Y = (kind:namespace)*/
+							/* X */
+							makeSimplePythonRefTag (name, NULL, K_MODULE,
+							                        PYTHON_MODULE_INDIRECTLY_IMPORTED,
+							                        XTAG_UNKNOWN);
+							/* Y */
+							makeSimplePythonTag (token, K_NAMESPACE);
+						}
+
+						copyToken (name, token);
+						readToken (token);
+					}
+				}
+				else
+				{
+					if (fromModule)
+					{
+						/* from x import Y
+						   --------------
+						   x = (kind:module,  role:namespace),
+						   Y = (kind:unknown, role:imported) */
+						/* Y */
+						makeSimplePythonRefTag (name, NULL, K_UNKNOWN,
+						                        PYTHON_MODULE_IMPORTED,
+						                        XTAG_UNKNOWN);
+						/* x.Y */
+						if (isXtagEnabled (XTAG_QUALIFIED_TAGS))
+						{
+							vString *fq = vStringNewCopy (fromModule->string);
+							vStringPut (fq, '.');
+							vStringCat (fq, name->string);
+							makeSimplePythonRefTag (name, fq, K_UNKNOWN,
+							                        PYTHON_MODULE_IMPORTED,
+							                        XTAG_QUALIFIED_TAGS);
+							vStringDelete (fq);
+						}
+					}
+					else
+					{
+						/* import X
+						   --------------
+						   X = (kind:module, role:imported) */
+						makeSimplePythonRefTag (name, NULL, K_MODULE,
+						                        PYTHON_MODULE_IMPORTED,
+						                        XTAG_UNKNOWN);
+					}
+				}
+
+				deleteToken (name);
+			}
+		}
+		while (token->type == ',');
+
+		if (parenthesized && token->type == ')')
+			readToken (token);
+	}
+
+	if (fromModule)
+		deleteToken (fromModule);
+
+	return FALSE;
+}
+
+static boolean parseVariable (tokenInfo *const token, const pythonKind kind)
+{
+	/* In order to support proper tag type for lambdas in multiple
+	 * assignations, we first collect all the names, and then try and map
+	 * an assignation to it */
+	tokenInfo *nameTokens[8] = { NULL };
+	unsigned int nameCount = 0;
+
+	/* first, collect variable name tokens */
+	while (token->type == TOKEN_IDENTIFIER &&
+	       nameCount < ARRAY_SIZE (nameTokens))
+	{
+		tokenInfo *name = newToken ();
+		copyToken (name, token);
+
+		nameTokens[nameCount++] = name;
+
+		readToken (token);
+		if (token->type == ',')
+			readToken (token);
+		else
+			break;
+	}
+
+	/* then, if it's a proper assignation, try and map assignations so that
+	 * we catch lambdas and alike */
+	if (token->type == '=')
+	{
+		unsigned int i = 0;
+
+		do
+		{
+			readToken (token);
+
+			if (token->keyword != KEYWORD_lambda)
+				makeSimplePythonTag (nameTokens[i++], kind);
+			else
+			{
+				vString *arglist = vStringNew ();
+
+				readToken (token);
+				vStringPut (arglist, '(');
+				skipLambdaArglist (token, arglist);
+				vStringPut (arglist, ')');
+				makeFunctionTag (nameTokens[i++], arglist, NULL);
+				vStringDelete (arglist);
+			}
+
+			/* skip until next initializer */
+			while ((TokenContinuationDepth > 0 || token->type != ',') &&
+			       token->type != TOKEN_EOF &&
+			       token->type != ';' &&
+			       token->type != TOKEN_INDENT)
+			{
+				readToken (token);
+			}
+		}
+		while (token->type == ',' && i < nameCount);
+
+		/* if we got leftover to initialize, just make variables out of them.
+		 * This handles cases like `a, b, c = (c, d, e)` -- or worse */
+		while (i < nameCount)
+			makeSimplePythonTag (nameTokens[i++], kind);
+	}
+
+	while (nameCount > 0)
+		deleteToken (nameTokens[--nameCount]);
+
+	return FALSE;
 }
 
 /* pops any level >= to indent */
@@ -885,7 +1184,8 @@ static void setIndent (tokenInfo *const token)
 static void findPythonTags (void)
 {
 	tokenInfo *const token = newToken ();
-	boolean atLineStart = TRUE;
+	vString *decorators = vStringNew ();
+	boolean atStatementStart = TRUE;
 
 	TokenContinuationDepth = 0;
 	NextToken = NULL;
@@ -894,6 +1194,7 @@ static void findPythonTags (void)
 	readToken (token);
 	while (token->type != TOKEN_EOF)
 	{
+		tokenType iterationTokenType = token->type;
 		boolean readNext = TRUE;
 
 		if (token->type == TOKEN_INDENT)
@@ -903,222 +1204,68 @@ static void findPythonTags (void)
 		{
 			pythonKind kind = token->keyword == KEYWORD_class ? K_CLASS : K_FUNCTION;
 
-			readNext = parseClassOrDef (token, kind, FALSE);
+			readNext = parseClassOrDef (token, decorators, kind, FALSE);
 		}
 		else if (token->keyword == KEYWORD_cdef ||
 		         token->keyword == KEYWORD_cpdef)
 		{
-			readNext = parseClassOrDef (token, K_FUNCTION, TRUE);
+			readNext = parseClassOrDef (token, decorators, K_FUNCTION, TRUE);
 		}
 		else if (token->keyword == KEYWORD_from ||
 		         token->keyword == KEYWORD_import)
 		{
-			tokenInfo *fromModule = NULL;
-
-			if (token->keyword == KEYWORD_from)
-			{
-				readQualifiedName (token);
-				if (token->type == TOKEN_IDENTIFIER)
-				{
-					fromModule = newToken ();
-					copyToken (fromModule, token);
-					readToken (token);
-				}
-			}
-
-			if (token->keyword == KEYWORD_import)
-			{
-				boolean parenthesized = FALSE;
-
-				if (fromModule)
-				{
-					/* from X import ...
-					 * --------------------
-					 * X = (kind:module, role:namespace) */
-					makeSimplePythonRefTag (fromModule, NULL, K_MODULE,
-					                        PYTHON_MODULE_NAMESPACE,
-					                        XTAG_UNKNOWN);
-				}
-
-				do
-				{
-					readQualifiedName (token);
-
-					/* support for `from x import (...)` */
-					if (fromModule && ! parenthesized && token->type == '(')
-					{
-						parenthesized = TRUE;
-						readQualifiedName (token);
-					}
-
-					if (token->type == TOKEN_IDENTIFIER)
-					{
-						tokenInfo *name = newToken ();
-
-						copyToken (name, token);
-						readToken (token);
-						/* if there is an "as", use it as the name */
-						if (token->keyword == KEYWORD_as)
-						{
-							readToken (token);
-							if (token->type == TOKEN_IDENTIFIER)
-							{
-								if (fromModule)
-								{
-									/* from x import Y as Z
-									 * ----------------------------
-									 * x = (kind:module,  role:namespace),
-									 * Y = (kind:unknown, role:indirectly-imported),
-									 * Z = (kind:unknown) */
-
-									/* Y */
-									makeSimplePythonRefTag (name, NULL, K_UNKNOWN,
-									                        PYTHON_UNKNOWN_INDIRECTLY_IMPORTED,
-									                        XTAG_UNKNOWN);
-									/* x.Y */
-									if (isXtagEnabled (XTAG_QUALIFIED_TAGS))
-									{
-										vString *fq = vStringNewCopy (fromModule->string);
-										vStringPut (fq, '.');
-										vStringCat (fq, name->string);
-										makeSimplePythonRefTag (name, fq, K_UNKNOWN,
-										                        PYTHON_UNKNOWN_INDIRECTLY_IMPORTED,
-										                        XTAG_QUALIFIED_TAGS);
-										vStringDelete (fq);
-									}
-									/* Z */
-									makeSimplePythonTag (token, K_UNKNOWN);
-								}
-								else
-								{
-									/* import x as Y
-									 * ----------------------------
-									 * X = (kind:module, role:indirectly-imported)
-									 * Y = (kind:namespace)*/
-									/* X */
-									makeSimplePythonRefTag (name, NULL, K_MODULE,
-									                        PYTHON_MODULE_INDIRECTLY_IMPORTED,
-									                        XTAG_UNKNOWN);
-									/* Y */
-									makeSimplePythonTag (token, K_NAMESPACE);
-								}
-
-								copyToken (name, token);
-								readToken (token);
-							}
-						}
-						else
-						{
-							if (fromModule)
-							{
-								/* from x import Y
-								   --------------
-								   x = (kind:module,  role:namespace),
-								   Y = (kind:unknown, role:imported) */
-								/* Y */
-								makeSimplePythonRefTag (name, NULL, K_UNKNOWN,
-								                        PYTHON_MODULE_IMPORTED,
-								                        XTAG_UNKNOWN);
-								/* x.Y */
-								if (isXtagEnabled (XTAG_QUALIFIED_TAGS))
-								{
-									vString *fq = vStringNewCopy (fromModule->string);
-									vStringPut (fq, '.');
-									vStringCat (fq, name->string);
-									makeSimplePythonRefTag (name, fq, K_UNKNOWN,
-									                        PYTHON_MODULE_IMPORTED,
-									                        XTAG_QUALIFIED_TAGS);
-									vStringDelete (fq);
-								}
-							}
-							else
-							{
-								/* import X
-								   --------------
-								   X = (kind:module, role:imported) */
-								makeSimplePythonRefTag (name, NULL, K_MODULE,
-								                        PYTHON_MODULE_IMPORTED,
-								                        XTAG_UNKNOWN);
-							}
-						}
-
-						deleteToken (name);
-					}
-				}
-				while (token->type == ',');
-
-				if (parenthesized && token->type == ')')
-					readToken (token);
-			}
-			readNext = FALSE;
-
-			if (fromModule)
-				deleteToken (fromModule);
+			readNext = parseImport (token);
 		}
 		else if (token->type == '(')
 		{ /* skip parentheses to avoid finding stuff inside them */
 			readNext = skipOverPair (token, '(', ')', NULL, FALSE);
 		}
-		else if (token->type == TOKEN_IDENTIFIER && atLineStart)
+		else if (token->type == TOKEN_IDENTIFIER && atStatementStart)
 		{
 			NestingLevel *lv = nestingLevelsGetCurrent (PythonNestingLevels);
 			tagEntryInfo *lvEntry = getEntryOfNestingLevel (lv);
+			pythonKind kind = K_VARIABLE;
 
-			if (! lvEntry || lvEntry->kind == &(PythonKinds[K_CLASS]))
+			if (lvEntry && lvEntry->kind != &(PythonKinds[K_CLASS]))
+				kind = K_LOCAL_VARIABLE;
+
+			readNext = parseVariable (token, kind);
+		}
+		else if (token->type == '@' && atStatementStart &&
+		         PythonFields[F_DECORATORS].enabled)
+		{
+			/* collect decorators */
+			readQualifiedName (token);
+			if (token->type != TOKEN_IDENTIFIER)
+				readNext = FALSE;
+			else
 			{
-				tokenInfo *name = newToken ();
-
-				do
-				{
-					copyToken (name, token);
-					readToken (token);
-					readNext = FALSE;
-					/* FIXME: to get perfect tag types, we'd need to collect
-					 *        the multiple names, and then map the initializers
-					 *        back, but that's very hard. */
-					if (token->type == ',')
-					{
-						makeSimplePythonTag (name, K_VARIABLE);
-						readToken (token);
-						if (token->type != TOKEN_IDENTIFIER)
-							break;
-					}
-					else
-					{
-						if (token->type == '=')
-						{
-							/* check for lambdas */
-							readToken (token);
-							if (token->keyword != KEYWORD_lambda)
-								makeSimplePythonTag (name, K_VARIABLE);
-							else
-							{
-								vString *arglist = vStringNew ();
-
-								readToken (token);
-								vStringPut (arglist, '(');
-								readNext = skipLambdaArglist (token, arglist);
-								vStringPut (arglist, ')');
-								makeFunctionTag (name, arglist);
-								vStringDelete (arglist);
-							}
-						}
-						break;
-					}
-				}
-				while (token->type == TOKEN_IDENTIFIER);
-
-				deleteToken (name);
+				if (vStringLength (decorators) > 0)
+					vStringPut (decorators, ',');
+				vStringCat (decorators, token->string);
+				readToken (token);
+				readNext = skipOverPair (token, '(', ')', decorators, TRUE);
 			}
 		}
 
-		atLineStart = token->type == TOKEN_INDENT;
+		/* clear collected decorators for any non-decorator tokens non-indent
+		 * token.  decorator collection takes care of skipping the possible
+		 * argument list, so we should never hit here parsing a decorator */
+		if (iterationTokenType != TOKEN_INDENT &&
+		    iterationTokenType != '@' &&
+		    PythonFields[F_DECORATORS].enabled)
+		{
+			vStringClear (decorators);
+		}
+
+		atStatementStart = (token->type == TOKEN_INDENT || token->type == ';');
 
 		if (readNext)
 			readToken (token);
 	}
 
 	nestingLevelsFree (PythonNestingLevels);
+	vStringDelete (decorators);
 	deleteToken (token);
 	Assert (NextToken == NULL);
 }
