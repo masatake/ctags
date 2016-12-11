@@ -13,6 +13,7 @@ MIO_SRCS  = main/mio.c
 
 MAIN_HEADS =			\
 	main/args.h		\
+        main/atoken.h		\
 	main/ctags.h		\
 	main/dependency.h	\
 	main/entry.h		\
@@ -51,6 +52,7 @@ MAIN_HEADS =			\
 
 MAIN_SRCS =				\
 	main/args.c			\
+        main/atoken.c			\
 	main/dependency.c		\
 	main/entry.c			\
 	main/error.c			\
