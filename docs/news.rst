@@ -45,6 +45,7 @@ The following parsers have been added:
 * DBusIntrospect *libxml*
 * Diff
 * DTS
+* Elm *optlib*
 * Falcon
 * Glade *libxml*
 * Go
