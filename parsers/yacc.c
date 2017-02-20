@@ -18,7 +18,8 @@
 #include "read.h"
 #include "mio.h"
 #include "promise.h"
-
+#include "tokeninfo.h"
+#include "keyword.h"
 
 static bool not_in_grammar_rules = true;
 
@@ -26,8 +27,21 @@ enum yaccParserState {
 	YACC_TOP_LEVEL,
 	YACC_C_PROLOGUE,
 	YACC_UNION,
+	YACC_TOKEN,
+	YACC_TYPE,
 	YACC_GRAMMER,
 	YACC_C_EPILOGUE,
+};
+
+typedef enum {
+	/* label */
+	K_TOKEN,
+	K_TYPE,
+} yaccKind;
+
+static kindOption yaccKinds [] = {
+	{ true, 't', "token", "tokens" },
+	{ true, 'T', "type",  "types"  },
 };
 
 static tagRegexTable yaccTagRegexTable [] = {
@@ -69,6 +83,26 @@ static void leave_c_prologue (const char *line CTAGS_ATTR_UNUSED,
 	*state = YACC_TOP_LEVEL;
 }
 
+static void enter_token (const char *line CTAGS_ATTR_UNUSED,
+			 const regexMatch *matches,
+			 unsigned int count CTAGS_ATTR_UNUSED,
+			 void *data)
+{
+	enum yaccParserState *state = data;
+	if (*state == YACC_TOP_LEVEL)
+		*state = YACC_TOKEN;
+}
+
+static void enter_type (const char *line CTAGS_ATTR_UNUSED,
+			  const regexMatch *matches,
+			  unsigned int count CTAGS_ATTR_UNUSED,
+			  void *data)
+{
+	enum yaccParserState *state = data;
+	if (*state == YACC_TOP_LEVEL)
+		*state = YACC_TYPE;
+}
+
 static void enter_union (const char *line CTAGS_ATTR_UNUSED,
 			 const regexMatch *matches,
 			 unsigned int count CTAGS_ATTR_UNUSED,
@@ -91,9 +125,27 @@ static void leave_union (const char *line CTAGS_ATTR_UNUSED,
 		*state = YACC_TOP_LEVEL;
 }
 
+static long yaccReadline ()
+{
+	int count = 0;
+	while (1)
+	{
+		int c = getcFromInputFile ();
+		if (c == EOF)
+			return count;
+		else if (c == '\n')
+		{
+			count++;
+			return count;
+		}
+		else
+			count++;
+	}
+}
+
 static void make_promise_for_epilogue (void)
 {
-	const unsigned char *tmp, *last;
+	long tmp, last;
 	long endCharOffset;
 	unsigned long c_start;
 	unsigned long c_source_start;
@@ -104,12 +156,13 @@ static void make_promise_for_epilogue (void)
 
 	/* Skip the lines for finding the EOF. */
 	endCharOffset = 0;
-	last = NULL;
-	while ((tmp = readLineFromInputFile ()))
+	last = 0;
+	while ((tmp = yaccReadline ()))
 		last = tmp;
 	if (last)
-		endCharOffset = strlen ((const char *)last);
-	/* If `last' is too long, strlen returns a too large value
+		endCharOffset = last;
+	/* (NEVER HAPPEN)
+	   If `last' is too long, strlen returns a too large value
 	   for the positive area of `endCharOffset'. */
 	if (endCharOffset < 0)
 		endCharOffset = 0;
@@ -119,20 +172,149 @@ static void make_promise_for_epilogue (void)
 	makePromise ("C", c_start, 0, c_end, endCharOffset, c_source_start);
 }
 
+enum eTokenType {
+	TOKEN_EOF = 256,
+	TOKEN_UNDEFINED,
+	TOKEN_IDENTIFIER,
+	TOKEN_NUMBER,
+	TOKEN_KEYWORD,		/* Never used */
+};
+
+struct tokenTypePair yaccTypePairs [] = {
+	{ '<', '>' },
+};
+
+static void readToken (tokenInfo *const token, void *data)
+{
+	int c;
+
+	enum yaccParserState *state = data;
+
+	if (*state != YACC_TOKEN)
+	{
+		token->type = TOKEN_EOF;
+		return;
+	}
+	
+	do {
+		c = getcFromInputFile ();
+	} while (c == ' ' || c== '\t' || c == '\f' || c == '\r' || c == '\n');
+
+	if (*state != YACC_TOKEN)
+	{
+		token->type = TOKEN_EOF;
+		return;
+	}
+
+	token->type = TOKEN_UNDEFINED;
+	token->keyword	= KEYWORD_NONE;
+	vStringClear (token->string);
+	token->lineNumber   = getInputLineNumber ();
+	token->filePosition = getInputFilePosition ();
+
+	switch (c)
+	{
+	case EOF:
+		token->type = TOKEN_EOF;
+		break;
+	case '%':
+		ungetcToInputFile (c);
+		token->type = TOKEN_EOF;
+		break;
+	case '<':
+		token->type = '<';
+		break;
+	case '>':
+		token->type = '>';
+		break;
+	default:
+		if (isdigit (c))
+		{
+			token->type = TOKEN_NUMBER;
+			tokenPutc(token, c);
+			while ((c = getcFromInputFile()))
+			{
+				if (isdigit (c))
+					tokenPutc(token, c);
+				else
+				{
+					ungetcToInputFile (c);
+					break;
+				}
+			}
+		}
+		else if (isalpha(c) || c == '_')
+		{
+			token->type = TOKEN_IDENTIFIER;
+			tokenPutc(token, c);
+			while ((c = getcFromInputFile()))
+			{
+				if (isalnum(c) || c == '_')
+					tokenPutc(token, c);
+				else
+				{
+					ungetcToInputFile (c);
+					break;
+				}
+
+			}
+		}
+		else
+			token->type = c;
+		break;
+	}
+}
+
+struct tokenInfoClass yaccTokenInfoClass = {
+	.nPreAlloc = 4,
+	.typeForUndefined = TOKEN_UNDEFINED,
+	.typeForKeyword   = TOKEN_KEYWORD,
+	.typeForEOF       = TOKEN_EOF,
+	.extraSpace       = 0,
+	.pairs            = yaccTypePairs,
+	.pairCount        = ARRAY_SIZE (yaccTypePairs),
+	.read             = readToken,
+};
+
+static void parseTokens (enum yaccParserState *state)
+{
+	tokenInfo *t = newToken (&yaccTokenInfoClass);
+
+	while (1)
+	{
+		tokenReadFull (t, state);
+		if (tokenIsEOF(t))
+			break;
+		else if (tokenIsType (t, IDENTIFIER))
+		{
+			if (yaccKinds[K_TOKEN].enabled)
+				makeSimpleTag (t->string, yaccKinds, K_TOKEN);
+		}
+		else if (t->type == '<')
+			tokenSkipOverPair (t);
+	}
+	tokenDestroy (t);
+}
+
 
 static enum yaccParserState parserState;
 
 static void initializeYaccParser (langType language)
 {
 	/*
+	  YACC_TOP_LEVEL
 	   %{ ...
-		C language
+		YACC_C_PROLOGUE
 	   %}
-		TOKE DEFINITIONS
+	   YACC_TOP_LEVEL
+	   %union {
+	   	YACC_UNION
+	   }
+	   YACC_TOP_LEVEL		
 	   %%
-		SYNTAX
+		YACC_GRAMMER
 	   %%
-		C language
+	   	YACC_C_EPILOGUE
 	*/
 
 	addCallbackRegex (language, "^%\\{", "{exclusive}", enter_c_prologue, NULL, &parserState);
@@ -142,6 +324,9 @@ static void initializeYaccParser (langType language)
 
 	addCallbackRegex (language, "^%union", "{exclusive}", enter_union, NULL, &parserState);
 	addCallbackRegex (language, "^}",      "{exclusive}", leave_union, NULL, &parserState);
+
+	addCallbackRegex (language, "^%token", "{exclusive}", enter_token, NULL, &parserState);
+	addCallbackRegex (language, "^%type",  "{exclusive}", enter_type,  NULL, &parserState);
 }
 
 static void runYaccParser (void)
@@ -158,12 +343,12 @@ static void runYaccParser (void)
 	parserState = YACC_TOP_LEVEL;
 	last_state = parserState;
 
-	while (readLineFromInputFile () != NULL)
+	while (yaccReadline ())
 	{
 		if (last_state == YACC_TOP_LEVEL &&
 		    parserState == YACC_C_PROLOGUE)
 		{
-			if (readLineFromInputFile ())
+			if (yaccReadline ())
 			{
 				c_input  = getInputLineNumber ();
 				c_source = getSourceLineNumber ();
@@ -192,9 +377,12 @@ static void runYaccParser (void)
 			c_input = 0;
 			c_source = 0;
 		}
+		else if (last_state == YACC_TOP_LEVEL
+			 && parserState == YACC_TOKEN)
+			parseTokens (&parserState);
 		else if (parserState == YACC_C_EPILOGUE)
 		{
-			if (readLineFromInputFile ())
+			if (yaccReadline ())
 				make_promise_for_epilogue ();
 		}
 		last_state = parserState;
@@ -211,5 +399,7 @@ extern parserDefinition* YaccParser (void)
 	def->parser     = runYaccParser;
 	def->tagRegexTable = yaccTagRegexTable;
 	def->tagRegexCount = ARRAY_SIZE (yaccTagRegexTable);
+	def->kinds      = yaccKinds;
+	def->kindCount  = ARRAY_SIZE (yaccKinds);
 	return def;
 }
