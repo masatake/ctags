@@ -1552,10 +1552,11 @@ static void saveMacro(const char * macro)
 
 				// check if it is a parameter
 				int tokenLen = c - tokenBegin;
-
-				CXX_DEBUG_PRINT("Check token '%.*s'",tokenLen,tokenBegin);
-
 				bool bIsVarArg = (tokenLen == 11) && (strncmp(tokenBegin,"__VA_ARGS__",11) == 0);
+
+				CXX_DEBUG_PRINT("Check token '%.*s'%s",tokenLen,tokenBegin,
+								bIsVarArg? "(va args)": "");
+
 
 				int i = 0;
 				for(;i<iParamCount;i++)
