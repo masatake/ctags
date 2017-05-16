@@ -36,6 +36,8 @@
 # include <io.h>
 #endif
 
+#include <stdint.h>
+
 #include "debug.h"
 #include "entry.h"
 #include "field.h"
@@ -48,6 +50,7 @@
 #include "routines.h"
 #include "sort.h"
 #include "strlist.h"
+#include "trashbox.h"
 #include "writer.h"
 #include "xtag.h"
 
@@ -959,10 +962,18 @@ static void recordTagEntryInQueue (const tagEntryInfo *const tag, tagEntryInfo* 
 		slot->extensionFields.xpath = eStrdup (slot->extensionFields.xpath);
 #endif
 
+	if (slot->extraDynamic)
+	{
+		int n = countXtags () - XTAG_COUNT;
+		slot->extraDynamic = xCalloc (n / 8, uint8_t);
+		memcpy (slot->extraDynamic, tag->extraDynamic, n / 8);
+	}
+
 	if (slot->sourceLanguage)
 		slot->sourceLanguage = eStrdup (slot->sourceLanguage);
 	if (slot->sourceFileName)
 		slot->sourceFileName = eStrdup (slot->sourceFileName);
+
 
 	slot->usedParserFields = 0;
 	copyParserFields (tag, slot);
@@ -1012,6 +1023,9 @@ static void clearTagEntryInQueue (tagEntryInfo* slot)
 	if (slot->extensionFields.xpath)
 		eFree ((char *)slot->extensionFields.xpath);
 #endif
+
+	if (slot->extraDynamic)
+		eFree (slot->extraDynamic);
 
 	if (slot->sourceLanguage)
 		eFree ((char *)slot->sourceLanguage);
@@ -1353,24 +1367,64 @@ extern void    markTagExtraBit     (tagEntryInfo *const tag, xtagType extra)
 {
 	unsigned int index;
 	unsigned int offset;
+	uint8_t *slot;
 
-	Assert (extra < XTAG_COUNT);
 	Assert (extra != XTAG_UNKNOWN);
 
-	index = (extra / 8);
-	offset = (extra % 8);
-	tag->extra [ index ] |= (1 << offset);
+	if (extra < XTAG_COUNT)
+	{
+		index = (extra / 8);
+		offset = (extra % 8);
+		slot = tag->extra;
+	}
+	else if (tag->extraDynamic)
+	{
+		Assert (extra < countXtags ());
+
+		index = ((extra - XTAG_COUNT) / 8);
+		offset = ((extra - XTAG_COUNT) % 8);
+		slot = tag->extraDynamic;
+	}
+	else
+	{
+		Assert (extra < countXtags ());
+
+		int n = countXtags () - XTAG_COUNT;
+		tag->extraDynamic = xCalloc (n / 8, uint8_t);
+		PARSER_TRASH_BOX(tag->extraDynamic, eFree);
+		markTagExtraBit (tag, extra);
+		return;
+	}
+
+	slot [ index ] |= (1 << offset);
 }
 
 extern bool isTagExtraBitMarked (const tagEntryInfo *const tag, xtagType extra)
 {
-	unsigned int index = (extra / 8);
-	unsigned int offset = (extra % 8);
+	unsigned int index;
+	unsigned int offset;
+	const uint8_t *slot;
 
-	Assert (extra < XTAG_COUNT);
 	Assert (extra != XTAG_UNKNOWN);
 
-	return !! ((tag->extra [ index ]) & (1 << offset));
+	if (extra < XTAG_COUNT)
+	{
+		index = (extra / 8);
+		offset = (extra % 8);
+		slot = tag->extra;
+
+	}
+	else if (!tag->extraDynamic)
+		return false;
+	else
+	{
+		Assert (extra < countXtags ());
+		index = ((extra - XTAG_COUNT) / 8);
+		offset = ((extra - XTAG_COUNT) % 8);
+		slot = tag->extraDynamic;
+
+	}
+	return !! ((slot [ index ]) & (1 << offset));
 }
 
 extern unsigned long numTagsAdded(void)
