@@ -80,6 +80,7 @@
 
 #ifdef HAVE_JANSSON
 #include "interactive.h"
+#include "secure.h"
 #include <jansson.h>
 #include <errno.h>
 #endif
@@ -496,6 +497,15 @@ static void batchMakeTags (cookedArgs *args, void *user CTAGS_ATTR_UNUSED)
 #ifdef HAVE_JANSSON
 void interactiveLoop (cookedArgs *args CTAGS_ATTR_UNUSED, void *user CTAGS_ATTR_UNUSED)
 {
+#ifdef HAVE_SECCOMP
+	if (Option.secure) {
+		initializeParser (LANG_AUTO);
+		if (install_syscall_filter ()) {
+			error (FATAL, "install_syscall_filter failed");
+		}
+	}
+#endif
+
 	char buffer[1024];
 	json_t *request;
 
