@@ -41,6 +41,7 @@ MAIN_HEADS =			\
 	main/ptrarray.h		\
 	main/read.h		\
 	main/routines.h		\
+	main/secure.h		\
 	main/selectors.h	\
 	main/sort.h		\
 	main/strlist.h		\
@@ -80,6 +81,7 @@ MAIN_SRCS =				\
 	main/ptrarray.c			\
 	main/read.c			\
 	main/routines.c			\
+	main/seccomp.c			\
 	main/selectors.c		\
 	main/sort.c			\
 	main/strlist.c			\
