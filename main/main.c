@@ -500,6 +500,12 @@ void interactiveLoop (cookedArgs *args CTAGS_ATTR_UNUSED, void *user CTAGS_ATTR_
 #ifdef HAVE_SECCOMP
 	if (Option.secure) {
 		initializeParser (LANG_AUTO);
+
+		/* For getting seed for hashing, jannson do `open("/dev/urandom")' internally.
+		   To strict calling open in seccomp-enabled environment,
+		   let jannson get the seed here. */
+		json_object_seed (0);
+
 		if (install_syscall_filter ()) {
 			error (FATAL, "install_syscall_filter failed");
 		}
