@@ -514,8 +514,8 @@ void interactiveLoop (cookedArgs *args CTAGS_ATTR_UNUSED, void *user CTAGS_ATTR_
 #ifdef HAVE_SECCOMP
         if (Option.secure) {
 			force_initializing_json ();
-                if (install_syscall_filter ()) {
-                        error (FATAL, "install_syscall_filter failed");
+			if (install_syscall_filter ()) {
+				error (FATAL, "install_syscall_filter failed");
 		}
 	}
 #endif
