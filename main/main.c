@@ -495,10 +495,25 @@ static void batchMakeTags (cookedArgs *args, void *user CTAGS_ATTR_UNUSED)
 }
 
 #ifdef HAVE_JANSSON
+#ifdef HAVE_SECCOMP
+static void force_initializing_json()
+{
+	/* If newer version of jansson is linked to ctags,
+	   following code forces jansson opening /dev/urandom and
+	   getting hash seed. This must be done before install
+	   the syscall filter. If older version is jansson linked
+	   to ctags, this makes very small oveerhead. */
+
+	json_t * tmp = json_object();
+	json_decref(tmp);
+}
+#endif
+
 void interactiveLoop (cookedArgs *args CTAGS_ATTR_UNUSED, void *user CTAGS_ATTR_UNUSED)
 {
 #ifdef HAVE_SECCOMP
         if (Option.secure) {
+			force_initializing_json ();
                 if (install_syscall_filter ()) {
                         error (FATAL, "install_syscall_filter failed");
 		}
