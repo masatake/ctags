@@ -1443,7 +1443,7 @@ static void processInteractiveOption (
 		const char *const option CTAGS_ATTR_UNUSED,
 		const char *const parameter)
 {
-	struct interactiveModeArgs args;
+	static struct interactiveModeArgs args;
 
 	Option.interactive = true;
 
