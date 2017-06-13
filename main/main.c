@@ -501,7 +501,7 @@ void interactiveLoop (cookedArgs *args CTAGS_ATTR_UNUSED, void *user CTAGS_ATTR_
 
 	if (iargs->secure) {
 		/* As of jansson 2.6, the object hashing is seeded off
-		   of /dev/urandomm, so trigger the hash seeding
+		   of /dev/urandom, so trigger the hash seeding
 		   before installing the syscall filter.
 		*/
 		json_t * tmp = json_object ();
