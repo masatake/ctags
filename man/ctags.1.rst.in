@@ -393,6 +393,8 @@ column.
 
 .. options should be explained and revised here
    ``--list-features`` (done)
+   ``--machinable``
+   ``--with-list-header``
 
 
 OPTION ITEMS
