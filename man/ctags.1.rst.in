@@ -261,7 +261,7 @@ The following example demonstrates "qualified" extra tag.
 .. code-block:: Java
 
 	package Bar;
-    import Baz;
+	import Baz;
 
 	class Foo {
 		// ...
