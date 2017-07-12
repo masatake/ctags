@@ -109,7 +109,12 @@ static parserDefinitionFunc* BuiltInParsers[] = {
 #ifdef HAVE_LIBYAML
 	,
 #endif
+	FLEX_PARSER_LIST
+#ifdef HAVE_FLEX
+	,
+#endif
 };
+
 static parserObject* LanguageTable = NULL;
 static unsigned int LanguageCount = 0;
 static hashTable* LanguageHTable = NULL;

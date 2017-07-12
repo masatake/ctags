@@ -105,6 +105,9 @@ MAIN_SRCS =				\
 include makefiles/translator_input.mak
 TRANSLATED_SRCS = $(TRANSLATOR_INPUT:.ctags=.c)
 
+include makefiles/flex_input.mak
+FLEX_SRCS = $(FLEX_INPUT:.l=.c)
+
 PARSER_HEADS = \
 	parsers/cxx/cxx_debug.h \
 	parsers/cxx/cxx_keyword.h \
@@ -214,6 +217,8 @@ PARSER_SRCS =				\
 	parsers/yumrepo.c		\
 	\
 	$(TRANSLATED_SRCS)		\
+	\
+	$(FLEX_SRCS)			\
 	\
 	$(NULL)
 

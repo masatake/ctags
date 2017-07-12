@@ -291,6 +291,15 @@ AM_CONDITIONAL([RUN_OPTLIB2C], [test "${perl_found}" = "yes"])
 AC_PATH_PROGS(RST2MAN, [rst2man rst2man.py rst2man3 rst2man3.py], [no])
 AM_CONDITIONAL([HAVE_RST2MAN], [test "x$RST2MAN" != "xno"])
 
+dnl AC_PROG_LEX
+AH_TEMPLATE([HAVE_FLEX],
+	[Define this value if flex command is available.])
+AC_PATH_PROGS(FLEX, [flex], [no])
+if test "x$FLEX" != "xno"; then
+   AC_DEFINE(HAVE_FLEX)
+fi
+AM_CONDITIONAL([HAVE_FLEX], [test "x$FLEX" != "xno"])
+
 # Checks for operating environment
 # --------------------------------
 in_git_repo=no

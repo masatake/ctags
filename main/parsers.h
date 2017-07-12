@@ -12,6 +12,13 @@
 #ifndef CTAGS_MAIN_PARSERS_H
 #define CTAGS_MAIN_PARSERS_H
 
+#ifdef HAVE_FLEX
+#define FLEX_PARSER_LIST \
+	LexParser
+#else
+#define FLEX_PARSER_LIST
+#endif
+
 #ifdef HAVE_LIBXML
 #define XML_PARSER_LIST \
 	DbusIntrospectParser, \

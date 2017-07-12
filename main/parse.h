@@ -135,7 +135,9 @@ extern parserDefinitionFunc XML_PARSER_LIST;
 #ifdef HAVE_LIBYAML
 extern parserDefinitionFunc YAML_PARSER_LIST;
 #endif
-
+#ifdef HAVE_FLEX
+extern parserDefinitionFunc FLEX_PARSER_LIST;
+#endif
 
 /* Language processing and parsing */
 extern int makeSimpleTag (const vString* const name, kindDefinition* const kinds, const int kind);

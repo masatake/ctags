@@ -95,6 +95,15 @@ OPTLIB2C = $(srcdir)/misc/optlib2c
 %.c: %.ctags $(OPTLIB2C) Makefile
 	$(optlib2c_verbose)$(OPTLIB2C) $< > $@
 endif
+
+if HAVE_FLEX
+flex_verbose = $(flex_verbose_@AM_V@)
+flex_verbose_ = $(flex_verbose_@AM_DEFAULT_V@)
+flex_verbose_0 = @echo FLEX "  $@";
+%.c: %.l
+	$(flex_verbose)$(FLEX) -o $@ --prefix $$(basename $< .l)_yy $<
+endif
+
 dist_ctags_SOURCES = $(ALL_HEADS) $(ALL_SRCS)
 
 if INSTALL_ETAGS
