@@ -30,6 +30,7 @@
 #define vStringValue(vs)      ((vs)->buffer)
 #define vStringItem(vs,i)     ((vs)->buffer[i])
 #define vStringLast(vs)       ((vs)->buffer[(vs)->length - 1])
+#define vStringItemFromLast(vs, i) ((vs)->buffer[(vs)->length - 1 - i])
 #define vStringLength(vs)     ((vs)->length)
 #define vStringSize(vs)       ((vs)->size)
 #define vStringChar(vs,i)     ((vs)->buffer[i])
@@ -60,7 +61,6 @@ extern vString *vStringNew (void);
 extern void vStringDelete (vString *const string);
 extern void vStringStripNewline (vString *const string);
 extern void vStringStripLeading (vString *const string);
-extern void vStringChop (vString *const string);
 extern void vStringStripTrailing (vString *const string);
 extern void vStringCat (vString *const string, const vString *const s);
 extern void vStringCatS (vString *const string, const char *const s);
@@ -75,7 +75,6 @@ extern void vStringNCopyS (vString *const string, const char *const s, const siz
 extern void vStringCopyToLower (vString *const dest, const vString *const src);
 extern void vStringSetLength (vString *const string);
 extern void vStringTruncate (vString *const string, const size_t length);
-
 extern vString *vStringNewOrClear (vString *const string);
 extern vString *vStringNewOrClearWithAutoRelease (vString *const string);
 
@@ -97,6 +96,25 @@ CTAGS_INLINE void vStringPut (vString *const string, const int c)
 	string->buffer [string->length] = c;
 	if (c != '\0')
 		string->buffer [++string->length] = '\0';
+}
+
+/* Return '\0' if the length is 0. */
+CTAGS_INLINE char vStringLastSafe(const vString *const string)
+{
+	if (vStringLength(string) == 0)
+		return '\0';
+	return vStringLast(string);
+}
+
+/*  Chop last character from string.
+ */
+CTAGS_INLINE void vStringChop (vString *const string)
+{
+	if (string->length > 0)
+	{
+		--string->length;
+		string->buffer [string->length] = '\0';
+	}
 }
 
 #endif  /* CTAGS_MAIN_VSTRING_H */
