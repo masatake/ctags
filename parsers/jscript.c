@@ -343,11 +343,11 @@ static void makeJsTag (const tokenInfo *const token, const jsKind kind,
 			 * there should never be any junk in a valid signature, but who
 			 * knows what the user wrote and CTags doesn't cope well with weird
 			 * characters. */
-			for (i = 0; i < signature->length; i++)
+			for (i = 0; i < vStringLength(signature); i++)
 			{
-				unsigned char c = (unsigned char) signature->buffer[i];
+				unsigned char c = (unsigned char) vStringItem(signature, i);
 				if (c < 0x20 /* below space */ || c == 0x7F /* DEL */)
-					signature->buffer[i] = ' ';
+					vStringChar(signature, i) = ' ';
 			}
 			e.extensionFields.signature = vStringValue(signature);
 		}
@@ -697,7 +697,7 @@ getNextChar:
 					  else
 					  {
 						  if (repr) /* remove the / we added */
-							  repr->buffer[--repr->length] = 0;
+							  vStringChop(repr);
 						  if (d == '*')
 						  {
 							  do
