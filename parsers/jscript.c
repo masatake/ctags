@@ -293,6 +293,38 @@ static void copyToken (tokenInfo *const dest, const tokenInfo *const src,
 /*
  *	 Tag generation functions
  */
+static char *sophisticateSignatureString (vString *signature)
+{
+	size_t i;
+	int offset = 0;
+	/* sanitize signature by replacing all control characters with a
+	 * space (because it's simple).
+	 * there should never be any junk in a valid signature, but who
+	 * knows what the user wrote and CTags doesn't cope well with weird
+	 * characters. */
+	for (i = 0; i < vStringLength(signature); i++)
+	{
+		unsigned char c = (unsigned char) vStringItem(signature, i);
+		if (c < 0x20 /* below space */ || c == 0x7F /* DEL */)
+			vStringChar(signature, i) = ' ';
+	}
+	if (vStringLength(signature) > 2
+		&& vStringItemFromLast(signature, 0) == ')'
+		&& vStringItemFromLast(signature, 1) == ' ')
+	{
+		vStringItemFromLast(signature, 1) = ')';
+		vStringChop(signature);
+	}
+	if (vStringLength(signature) > 2
+		&& vStringItem(signature, 0) == '('
+		&& vStringItem(signature, 1) == ' ')
+	{
+		offset = 1;
+		vStringItem(signature, 1) = '(';
+	}
+
+	return vStringValue(signature) + offset;
+}
 
 static void makeJsTag (const tokenInfo *const token, const jsKind kind,
                        vString *const signature, vString *const inheritance)
@@ -337,35 +369,7 @@ static void makeJsTag (const tokenInfo *const token, const jsKind kind,
 
 		if (signature && vStringLength(signature))
 		{
-			size_t i;
-			int offset = 0;
-			/* sanitize signature by replacing all control characters with a
-			 * space (because it's simple).
-			 * there should never be any junk in a valid signature, but who
-			 * knows what the user wrote and CTags doesn't cope well with weird
-			 * characters. */
-			for (i = 0; i < vStringLength(signature); i++)
-			{
-				unsigned char c = (unsigned char) vStringItem(signature, i);
-				if (c < 0x20 /* below space */ || c == 0x7F /* DEL */)
-					vStringChar(signature, i) = ' ';
-			}
-			if (vStringLength(signature) > 2
-				&& vStringItemFromLast(signature, 0) == ')'
-				&& vStringItemFromLast(signature, 1) == ' ')
-			{
-					vStringItemFromLast(signature, 1) = ')';
-					vStringChop(signature);
-			}
-			if (vStringLength(signature) > 2
-				&& vStringItem(signature, 0) == '('
-				&& vStringItem(signature, 1) == ' ')
-			{
-				offset = 1;
-				vStringItem(signature, 1) = '(';
-			}
-
-			e.extensionFields.signature = vStringValue(signature) + offset;
+			e.extensionFields.signature = sophisticateSignatureString(signature);
 		}
 
 		if (inheritance)
