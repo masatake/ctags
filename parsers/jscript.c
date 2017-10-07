@@ -338,6 +338,7 @@ static void makeJsTag (const tokenInfo *const token, const jsKind kind,
 		if (signature && vStringLength(signature))
 		{
 			size_t i;
+			int offset = 0;
 			/* sanitize signature by replacing all control characters with a
 			 * space (because it's simple).
 			 * there should never be any junk in a valid signature, but who
@@ -349,7 +350,22 @@ static void makeJsTag (const tokenInfo *const token, const jsKind kind,
 				if (c < 0x20 /* below space */ || c == 0x7F /* DEL */)
 					vStringChar(signature, i) = ' ';
 			}
-			e.extensionFields.signature = vStringValue(signature);
+			if (vStringLength(signature) > 2
+				&& vStringItemFromLast(signature, 0) == ')'
+				&& vStringItemFromLast(signature, 1) == ' ')
+			{
+					vStringItemFromLast(signature, 1) = ')';
+					vStringChop(signature);
+			}
+			if (vStringLength(signature) > 2
+				&& vStringItem(signature, 0) == '('
+				&& vStringItem(signature, 1) == ' ')
+			{
+				offset = 1;
+				vStringItem(signature, 1) = '(';
+			}
+
+			e.extensionFields.signature = vStringValue(signature) + offset;
 		}
 
 		if (inheritance)
@@ -586,9 +602,18 @@ getNextChar:
 
 	if (repr && c != EOF)
 	{
-		if (i > 1)
+		bool repr_ends_with_whitespace = (
+			isspace (vStringLastSafe(repr))
+			|| vStringLength(repr) == 0);
+
+		if ((!repr_ends_with_whitespace) && i > 1)
+		{
 			vStringPut (repr, ' ');
-		vStringPut (repr, c);
+			if (!isspace(c))
+				vStringPut (repr, c);
+		}
+		else if ( ! (isspace(c) && repr_ends_with_whitespace) )
+			vStringPut (repr, c);
 	}
 
 	switch (c)
