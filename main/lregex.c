@@ -616,6 +616,8 @@ static void pre_ptrn_flag_field_long (const char* const s CTAGS_ATTR_UNUSED, con
 
 	struct fieldPattern *fp;
 	fieldType ftype;
+	fieldType tmp_ftype, common_ftype = FIELD_UNKNOWN, lang_ftype = FIELD_UNKNOWN;
+
 	char *fname;
 	const char* template;
 	char *tmp;
@@ -634,12 +636,34 @@ static void pre_ptrn_flag_field_long (const char* const s CTAGS_ATTR_UNUSED, con
 	}
 
 	fname = eStrndup (v, tmp - v);
-	ftype = getFieldTypeForNameAndLanguage (fname, fdata->owner);
-	if (ftype == FIELD_UNKNOWN)
+	tmp_ftype = getFieldTypeForNameAndLanguage (fname, LANG_AUTO);
+	if (tmp_ftype == FIELD_UNKNOWN)
 	{
-		error (WARNING, "no such field \"%s\" in %s", fname, getLanguageName(fdata->owner));
+		error (WARNING, "no such field \"%s\"", fname);
 		eFree (fname);
 		return;
+	}
+
+	if (isCommonField (tmp_ftype))
+	{
+		common_ftype = tmp_ftype;
+		/* Use field type is parser has its own one. */
+		lang_ftype = nextSiblingField(tmp_ftype, fdata->owner);
+	}
+	else
+		lang_ftype = tmp_ftype;
+
+	if (lang_ftype != FIELD_UNKNOWN)
+		ftype = lang_ftype;
+	else
+	{
+		if (!ftypeIsSettable(common_ftype))
+		{
+			error (WARNING, "cannot set a value to the field from regex parser: \"%s\"", fname);
+			eFree (fname);
+			return;
+		}
+		ftype = common_ftype;
 	}
 
 	if (fdata->spec)
