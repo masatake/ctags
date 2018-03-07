@@ -961,12 +961,24 @@ extern int countFields (void)
 	return fieldObjectUsed;
 }
 
-extern fieldType nextSiblingField (fieldType type)
+extern fieldType nextSiblingField (fieldType type, langType lang)
 {
 	fieldObject *fobj;
+	fieldType next;
 
 	fobj = fieldObjects + type;
-	return fobj->sibling;
+	next = fobj->sibling;
+	if (lang == LANG_AUTO)
+		return next;
+
+	while (next != FIELD_UNKNOWN)
+	{
+		if (getFieldOwner (next) == lang)
+			return next;
+		next = (fieldObjects + next)->sibling;
+	}
+
+	return FIELD_UNKNOWN;
 }
 
 static void updateSiblingField (fieldType type, const char* name)

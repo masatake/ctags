@@ -124,7 +124,11 @@ extern int countFields (void);
 /* language should be typed to langType.
    Use int here to avoid circular dependency */
 extern int defineField (fieldDefinition *spec, langType language);
-extern fieldType nextSiblingField (fieldType type);
+
+/* If `LANG_AUTO' is specified as `lang', just return next one.
+   Specifying `LANG_AUTO' is useful for traversing all fields having
+   the same name. */
+extern fieldType nextSiblingField (fieldType type, langType lang);
 
 /* --list-fields implementation. LANGUAGE must be initialized. */
 extern struct colprintTable * fieldColprintTableNew (void);

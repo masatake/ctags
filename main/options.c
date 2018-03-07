@@ -2729,7 +2729,7 @@ static void enableLanguageField (langType language, const char *field, bool mode
 	{
 		fieldType ftype_next = t;
 
-		while ((ftype_next = nextSiblingField (ftype_next)) != FIELD_UNKNOWN)
+		while ((ftype_next = nextSiblingField (ftype_next, LANG_AUTO)) != FIELD_UNKNOWN)
 			enableField (ftype_next, mode, (language != LANG_AUTO));
 	}
 }

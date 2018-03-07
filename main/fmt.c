@@ -45,7 +45,7 @@ static bool isParserFieldCompatibleWithFtype (const tagField *pfield, int baseFt
 	do {
 		if (pfield->ftype == baseFtype)
 			return true;
-		baseFtype = nextSiblingField (baseFtype);
+		baseFtype = nextSiblingField (baseFtype, LANG_AUTO);
 	} while (baseFtype != FIELD_UNKNOWN);
 	return false;
 }
@@ -218,7 +218,7 @@ static fmtElement** queueTagField (fmtElement **last, long width, bool truncatio
 	{
 		fieldType ftype_next = ftype;
 
-		while ((ftype_next = nextSiblingField (ftype_next)) != FIELD_UNKNOWN)
+		while ((ftype_next = nextSiblingField (ftype_next, LANG_AUTO)) != FIELD_UNKNOWN)
 			enableField (ftype_next, true, false);
 	}
 
