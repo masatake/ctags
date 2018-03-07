@@ -343,7 +343,7 @@ extern fieldType getFieldTypeForNameAndLanguage (const char *fieldName, langType
 		if (fieldObjects [i].def->name
 		    && strcmp (fieldObjects [i].def->name, fieldName) == 0
 		    && ((language == LANG_AUTO)
-			|| (fieldObjects [i].language == language)))
+				|| (fieldObjects [i].language == language)))
 			return i;
 	}
 
