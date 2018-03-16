@@ -46,6 +46,7 @@ extern void vStringResize (vString *const string, const size_t newSize)
 		string->size = size;
 		string->buffer = xRealloc (string->buffer, size, char);
 	}
+	/* ??? */
 }
 
 extern void vStringTruncate (vString *const string, const size_t length)

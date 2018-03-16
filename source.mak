@@ -32,6 +32,7 @@ MAIN_HEADS =			\
 	main/lregex.h		\
 	main/lxpath.h		\
 	main/main.h		\
+	main/pmanager.h		\
 	main/mbcs.h		\
 	main/nestlevel.h	\
 	main/objpool.h		\
@@ -81,6 +82,7 @@ MAIN_SRCS =				\
 	main/options.c			\
 	main/param.c			\
 	main/parse.c			\
+	main/pmanager.c			\
 	main/portable-scandir.c		\
 	main/promise.c			\
 	main/ptag.c			\

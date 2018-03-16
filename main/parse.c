@@ -120,6 +120,8 @@ static kindDefinition defaultFileKind = {
 	.description = KIND_FILE_DEFAULT_LONG,
 };
 
+static struct Manager *manager;
+
 /*
 *   FUNCTION DEFINITIONS
 */

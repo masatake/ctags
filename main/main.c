@@ -69,6 +69,7 @@
 #include "keyword.h"
 #include "main.h"
 #include "options.h"
+#include "pmanager.h"
 #include "read.h"
 #include "routines.h"
 #include "trace.h"
@@ -92,6 +93,7 @@
 static struct { long files, lines, bytes; } Totals = { 0, 0, 0 };
 static mainLoopFunc mainLoop;
 static void *mainData;
+static struct PManager *pmanager;
 
 /*
 *   FUNCTION PROTOTYPES
@@ -254,6 +256,8 @@ static bool createTagsForEntry (const char *const entryName)
 		resize = recurseIntoDirectory (entryName);
 	else if (! status->isNormalFile)
 		verbose ("ignoring \"%s\" (special file)\n", entryName);
+	else if (pmanager)
+		pmanager_dispatch(pmanager, entryName);
 	else
 		resize = parseFile (entryName);
 
@@ -449,8 +453,11 @@ static void batchMakeTags (cookedArgs *args, void *user CTAGS_ATTR_UNUSED)
 	}
 
 #define timeStamp(n) timeStamps[(n)]=(Option.printTotals ? clock():(clock_t)0)
-	if ((! Option.filter) && (! Option.printLanguage))
+	if ((! Option.filter) && (! Option.printLanguage) && (!Option.parallel))
 		openTagFile ();
+
+	if (Option.parallel)
+		pmanager = pmanager_new(8, 0, NULL);
 
 	timeStamp (0);
 
@@ -474,7 +481,10 @@ static void batchMakeTags (cookedArgs *args, void *user CTAGS_ATTR_UNUSED)
 
 	timeStamp (1);
 
-	if ((! Option.filter) && (!Option.printLanguage))
+	if (Option.parallel)
+		pmanager_delete(pmanager);
+
+	if ((! Option.filter) && (!Option.printLanguage) && (!Option.parallel))
 		closeTagFile (resize);
 
 	timeStamp (2);

@@ -168,6 +168,7 @@ optionValues Option = {
 	.putFieldPrefix = false,
 	.maxRecursionDepth = 0xffffffff,
 	.interactive = false,
+	.parallel = false,
 #ifdef DEBUG
 	.debugLevel = 0,
 	.breakLine = 0,
@@ -2651,6 +2652,7 @@ static booleanOption BooleanOptions [] = {
 	{ "verbose",        &Option.verbose,                false, STAGE_ANY },
 	{ "with-list-header", &localOption.withListHeader,       true,  STAGE_ANY },
 	{ "_fatal-warnings",&Option.fatalWarnings,          false, STAGE_ANY },
+	{ "_parallel",      &Option.parallel, false, STAGE_ANY },
 };
 
 /*
