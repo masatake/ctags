@@ -45,7 +45,11 @@ enum CXXTagCPPKind
 	CXXTagCPPKindNAMESPACE,
 	CXXTagCPPKindALIAS,
 	CXXTagCPPKindNAME,
-	CXXTagCPPKindUSING
+};
+
+enum CXXTagCPPNamespaceRole
+{
+	CXXTagCPPNamespaceRoleUSING,
 };
 
 // The fields common to all (sub)languages this parser supports.
@@ -94,6 +98,10 @@ bool cxxTagKindEnabled(unsigned int uTagKind);
 // Must be followed by cxxTagCommit() if it returns a non-NULL value.
 // The pToken ownership is NOT transferred.
 tagEntryInfo * cxxTagBegin(unsigned int uKind,CXXToken * pToken);
+
+// Do the same as cxxTagBegin but attaching  a role for making a
+// reference tag.
+tagEntryInfo * cxxRefTagBegin(unsigned int uKind,unsigned int uRole,CXXToken * pToken);
 
 // Set the type of the current tag from the specified token sequence
 // (which must belong to the same chain!).

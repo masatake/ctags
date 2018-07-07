@@ -131,7 +131,9 @@ bool cxxParserParseUsingClause(void)
 						"Found using clause '%s' which extends scope",
 						vStringValue(t->pszWord)
 					);
-				tag = cxxTagBegin(CXXTagCPPKindUSING,t);
+				tag = cxxRefTagBegin(CXXTagCPPKindNAMESPACE,
+									 CXXTagCPPNamespaceRoleUSING,t);
+
 			} else {
 
 				t = cxxTokenChainLast(g_cxx.pTokenChain);
