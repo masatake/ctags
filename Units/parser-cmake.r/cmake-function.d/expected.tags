@@ -1,5 +1,8 @@
-Bfunctiontag_this_2	input.cmake	/^	function(	Bfunctiontag_this_2 ${BAR})$/;"	f
-cxx_shared_library	input.cmake	/^function(cxx_shared_library name cxx_flags)$/;"	f
-d_ALSO_Tag_this	input.cmake	/^        d_ALSO_Tag_this$/;"	f
-eLastlyTagThis_	input.cmake	/^eLastlyTagThis_ "hello")$/;"	f
-tag_this1	input.cmake	/^function(tag_this1)$/;"	f
+Bfunctiontag_this_2	input.cmake	/^	function(	Bfunctiontag_this_2 ${BAR})$/;"	f	line:9	end:25
+a	input.cmake	/^function(a)$/;"	f	line:3	end:8
+b	input.cmake	/^  function(b)$/;"	f	line:4	function:a	end:7
+c	input.cmake	/^    function(c)$/;"	f	line:5	function:a.b	end:6
+cxx_shared_library	input.cmake	/^function(cxx_shared_library name cxx_flags)$/;"	f	line:11	function:Bfunctiontag_this_2	end:13
+d_ALSO_Tag_this	input.cmake	/^        d_ALSO_Tag_this$/;"	f	line:16	function:Bfunctiontag_this_2	end:25
+eLastlyTagThis_	input.cmake	/^eLastlyTagThis_ "hello")$/;"	f	line:20	function:Bfunctiontag_this_2.d_ALSO_Tag_this	end:25
+tag_this1	input.cmake	/^function(tag_this1)$/;"	f	line:1	end:2

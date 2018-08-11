@@ -1,5 +1,11 @@
 macro(tag_this1)
 endmacro(tag_this1)
+function(a)
+  function(b)
+    function(c)
+    endfunction(c)
+  endfunction(b)
+endfunction(a)
 	macro(	Bmacrotag_this_2 ${BAR})
 
 macro(cxx_shared_library name cxx_flags)

@@ -85,6 +85,7 @@
 --_tabledef-CMake=skipWhiteSpace
 --_tabledef-CMake=skipToName
 --_tabledef-CMake=nextToken
+--_tabledef-CMake=endWithPop
 
 --_mtable-regex-CMake=skipWhiteSpace/[ \t\n]+//
 
@@ -93,6 +94,7 @@
 
 --_mtable-regex-CMake=nextToken/[^ \t\n]+[ \t\n]*//
 
+--_mtable-regex-CMake=endWithPop///{tleave}{scope=pop}
 #
 # main
 #
@@ -100,11 +102,12 @@
 # matching tokens with leading characters that could not possibly match a later regex,
 # and just skipping the whole token (and trailing whitespace). This one regex line
 # improved performance by an order of magnitude.
---_mtable-regex-CMake=main/[^sSfFmMaAoOpP# \t\n][^ #\t\n]*[ \t\n]+//
+--_mtable-regex-CMake=main/[^eEsSfFmMaAoOpP# \t\n][^ #\t\n]*[ \t\n]+//
 --_mtable-extend-CMake=main+skipComment
 --_mtable-regex-CMake=main/set[ \t]*\(//{icase}{tenter=variable}
 --_mtable-regex-CMake=main/function[ \t]*\(//{icase}{tenter=function}
 --_mtable-regex-CMake=main/macro[ \t]*\(//{icase}{tenter=macro}
+--_mtable-regex-CMake=main/end(function|macro)[ \t]*\(//{icase}{tleave}
 --_mtable-regex-CMake=main/add_(custom_target|executable|library)[ \t]*\(//{icase}{tenter=target}
 --_mtable-regex-CMake=main/option[ \t]*\(//{icase}{tenter=option}
 --_mtable-regex-CMake=main/project[ \t]*\(//{icase}{tenter=project}
@@ -130,13 +133,13 @@
 #
 # function
 #
---_mtable-regex-CMake=function/([A-Za-z_][A-Za-z0-9_]*)([# \t\n\)])/\1/f/{tleave}{advanceTo=2start}
+--_mtable-regex-CMake=function/([A-Za-z_][A-Za-z0-9_]*)([# \t\n\)])/\1/f/{advanceTo=2start}{tenter=main,endWithPop}{scope=push}
 --_mtable-extend-CMake=function+skipToName
 
 #
 # macro
 #
---_mtable-regex-CMake=macro/([A-Za-z_][A-Za-z0-9_]*)([# \t\n\)])/\1/m/{tleave}{advanceTo=2start}
+--_mtable-regex-CMake=macro/([A-Za-z_][A-Za-z0-9_]*)([# \t\n\)])/\1/m/{tleave}{advanceTo=2start}{tenter=main,endWithPop}{scope=push}
 --_mtable-extend-CMake=macro+skipToName
 
 #

@@ -22,9 +22,10 @@ static void initializeCMakeParser (const langType language CTAGS_ATTR_UNUSED)
 	addLanguageRegexTable (language, "skipWhiteSpace");
 	addLanguageRegexTable (language, "skipToName");
 	addLanguageRegexTable (language, "nextToken");
+	addLanguageRegexTable (language, "endWithPop");
 
 	addLanguageTagMultiTableRegex (language, "main",
-	                               "^[^sSfFmMaAoOpP# \t\n][^ #\t\n]*[ \t\n]+",
+	                               "^[^eEsSfFmMaAoOpP# \t\n][^ #\t\n]*[ \t\n]+",
 	                               "", "", "", NULL);
 	addLanguageTagMultiTableRegex (language, "main",
 	                               "^#",
@@ -38,6 +39,9 @@ static void initializeCMakeParser (const langType language CTAGS_ATTR_UNUSED)
 	addLanguageTagMultiTableRegex (language, "main",
 	                               "^macro[ \t]*\\(",
 	                               "", "", "{icase}{tenter=macro}", NULL);
+	addLanguageTagMultiTableRegex (language, "main",
+	                               "^end(function|macro)[ \t]*\\(",
+	                               "", "", "{icase}{tleave}", NULL);
 	addLanguageTagMultiTableRegex (language, "main",
 	                               "^add_(custom_target|executable|library)[ \t]*\\(",
 	                               "", "", "{icase}{tenter=target}", NULL);
@@ -64,7 +68,7 @@ static void initializeCMakeParser (const langType language CTAGS_ATTR_UNUSED)
 	                               "", "", "{tenter=commentBegin}", NULL);
 	addLanguageTagMultiTableRegex (language, "function",
 	                               "^([A-Za-z_][A-Za-z0-9_]*)([# \t\n\\)])",
-	                               "\\1", "f", "{tleave}{advanceTo=2start}", NULL);
+	                               "\\1", "f", "{advanceTo=2start}{tenter=main,endWithPop}{scope=push}", NULL);
 	addLanguageTagMultiTableRegex (language, "function",
 	                               "^[ \t\n]+",
 	                               "", "", "", NULL);
@@ -73,7 +77,7 @@ static void initializeCMakeParser (const langType language CTAGS_ATTR_UNUSED)
 	                               "", "", "{tenter=commentBegin}", NULL);
 	addLanguageTagMultiTableRegex (language, "macro",
 	                               "^([A-Za-z_][A-Za-z0-9_]*)([# \t\n\\)])",
-	                               "\\1", "m", "{tleave}{advanceTo=2start}", NULL);
+	                               "\\1", "m", "{tleave}{advanceTo=2start}{tenter=main,endWithPop}{scope=push}", NULL);
 	addLanguageTagMultiTableRegex (language, "macro",
 	                               "^[ \t\n]+",
 	                               "", "", "", NULL);
@@ -134,6 +138,9 @@ static void initializeCMakeParser (const langType language CTAGS_ATTR_UNUSED)
 	addLanguageTagMultiTableRegex (language, "nextToken",
 	                               "^[^ \t\n]+[ \t\n]*",
 	                               "", "", "", NULL);
+	addLanguageTagMultiTableRegex (language, "endWithPop",
+	                               "^",
+	                               "", "", "{tleave}{scope=pop}", NULL);
 }
 
 extern parserDefinition* CMakeParser (void)
@@ -180,6 +187,7 @@ extern parserDefinition* CMakeParser (void)
 	def->patterns      = patterns;
 	def->aliases       = aliases;
 	def->method        = METHOD_NOT_CRAFTED|METHOD_REGEX;
+	def->useCork       = 1;
 	def->kindTable = CMakeKindTable;
 	def->kindCount = ARRAY_SIZE(CMakeKindTable);
 	def->initialize    = initializeCMakeParser;

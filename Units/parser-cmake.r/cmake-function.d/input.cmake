@@ -1,5 +1,11 @@
 function(tag_this1)
 endfunction(tag_this1)
+function(a)
+  function(b)
+    function(c)
+    endfunction(c)
+  endfunction(b)
+endfunction(a)
 	function(	Bfunctiontag_this_2 ${BAR})
 
 function(cxx_shared_library name cxx_flags)
