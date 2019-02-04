@@ -172,6 +172,7 @@ typedef enum eTokenType {
 	TOKEN_REGEXP,
 	TOKEN_POSTFIX_OPERATOR,
 	TOKEN_STAR,
+	TOKEN_BANG,
 	TOKEN_BINARY_OPERATOR
 } tokenType;
 
@@ -907,6 +908,9 @@ getNextChar:
 
 		case '*':
 			token->type = TOKEN_STAR;
+			break;
+		case '!':
+			token->type = TOKEN_BANG;
 			break;
 		case '%':
 		case '?':
@@ -2518,6 +2522,78 @@ static bool parseLine (tokenInfo *const token, bool is_inside_class)
 			default:
 				is_terminated = parseStatement (token, is_inside_class);
 				break;
+		}
+	}
+	else if (isType (token, TOKEN_OPEN_PAREN) ||
+			 isType (token, TOKEN_BANG))
+	{
+		/*
+		 * Try to handle "Self-Invoking Anonymous Function Statements" like:
+		 * (function(x) { # case A.
+		 *     return x + 1;
+		 * })(1);
+		 *
+		 * (function(y) { # case B.
+		 *     return y - 1;
+		 * }(1));
+		 *
+		 * !function(z) { # case C.
+		 *     return z * 1;
+		 * }(1);
+		 */
+		bool started_with_paren = isType (token, TOKEN_OPEN_PAREN);
+
+		readToken (token);
+		is_terminated = parseLine (token, is_inside_class);
+
+		/*
+		 * case C is nothing special; t just returns above `is_terminated'.
+		 * In case A, next ')' should be consumed here.
+		 * In case B, the last ')' after an argument list should be consumed here.
+		 * In case A and B, this function returns true.
+		 */
+		if (started_with_paren)
+		{
+			if (is_terminated)
+			{
+				tokenType last_token_type = token->type;
+				/* case A and B. */
+				readToken (token);
+				if (isType (token, TOKEN_CLOSE_PAREN))
+				{
+					/* case A. */
+					is_terminated = true;
+				}
+				else if (last_token_type == TOKEN_CLOSE_CURLY && isType (token, TOKEN_OPEN_PAREN))
+				{
+					/*
+					 * maybe case B.
+					 * Parse the argument list if there is.
+					 */
+					is_terminated = parseStatement (token, is_inside_class);
+					if (is_terminated)
+					{
+						readToken (token);
+						if (!isType (token, TOKEN_CLOSE_PAREN) && !isType (token, TOKEN_EOF))
+						{
+							/*
+							 * In case B, ')' terminates the statement.
+							 * If the token is not ')', the statement is
+							 * not a "Self-Invoking Anonymous Function Statement".
+							 */
+							Assert (NextToken == NULL);
+							NextToken = newToken ();
+							copyToken (NextToken, token, false);
+						}
+					}
+				}
+				else if (!isType (token, TOKEN_EOF))
+				{
+					Assert (NextToken == NULL);
+					NextToken = newToken ();
+					copyToken (NextToken, token, false);
+				}
+			}
 		}
 	}
 	else

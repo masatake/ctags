@@ -1,0 +1,10 @@
+a	input.js	/^    var a = function (o) { return o; };$/;"	f	function:AnonymousFunction204aa80e0100
+AnonymousFunction204aa80e0100	input.js	/^(function(x) {$/;"	f
+b	input.js	/^    const b = function (p) { return p; };$/;"	f	function:AnonymousFunction204aa80e0200
+AnonymousFunction204aa80e0200	input.js	/^(function(y) {$/;"	f
+c	input.js	/^    const c = function (r) { return r; };$/;"	f	function:AnonymousFunction204aa80e0300
+AnonymousFunction204aa80e0300	input.js	/^!function(z) {$/;"	f
+AnonymousFunction204aa80e0400	input.js	/^console.log("a" + (function (A) {$/;"	f
+AnonymousFunction204aa80e0500	input.js	/^}((function (B) {$/;"	f
+f	input.js	/^    var f = function (t) {$/;"	f	function:AnonymousFunction204aa80e0600
+AnonymousFunction204aa80e0600	input.js	/^}(!function(C) {$/;"	f
