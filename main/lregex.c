@@ -97,6 +97,12 @@ struct mGroupSpec {
 	int forNextScanning;
 	/* true => start, false => end */
 	bool nextFromStart;
+
+	langType guest;
+	int forGuestAreaStart;
+	bool guestAreaStartStart;
+	int forGuestAreaEnd;
+	bool guestAreaEndStart;
 };
 
 struct mTableActionSpec {
@@ -482,6 +488,8 @@ static void initMgroup(struct mGroupSpec *mgroup)
 	mgroup->forLineNumberDetermination = NO_MULTILINE;
 	mgroup->forNextScanning = NO_MULTILINE;
 	mgroup->nextFromStart = false;
+
+	mgroup->guest = LANG_IGNORE;
 }
 
 static void initTaction(struct mTableActionSpec *taction)
@@ -578,13 +586,6 @@ static void pre_ptrn_flag_mgroup_long (const char* const s, const char* const v,
 			   s, v);
 		mgroup->forLineNumberDetermination = NO_MULTILINE;
 	}
-
-	if (mgroup->forLineNumberDetermination != NO_MULTILINE
-		&& mgroup->forNextScanning == NO_MULTILINE)
-	{
-		mgroup->forNextScanning = 0;
-		mgroup->nextFromStart = false;
-	}
 }
 
 static void pre_ptrn_flag_advanceTo_long (const char* const s, const char* const v, void* data)
@@ -626,11 +627,140 @@ static void pre_ptrn_flag_advanceTo_long (const char* const s, const char* const
 	eFree (vdup);
 }
 
+static void pre_ptrn_flag_guest_long (const char* const s, const char* const v, void* data)
+{
+	struct mGroupSpec *mgroup = data;
+
+	if (!v)
+	{
+		error (WARNING, "no value is given for: %s", s);
+		return;
+	}
+
+	char *tmp = strchr (v, ',');
+	if (tmp == NULL)
+	{
+		error (WARNING, "no terminator found for parser name: %s", s);
+		return;
+	}
+
+	mgroup->guest = getNamedLanguage (v, (tmp - v));
+	if (mgroup->guest == LANG_IGNORE)
+	{
+		error (WARNING, "no parser found for the guest spec: %s", v);
+		return;
+	}
+
+	tmp++;
+	if (*tmp == '\0')
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "no area spec found in the guest spec: %s", v);
+		return;
+	}
+
+	char *n = tmp;
+	for (; isdigit (*tmp); tmp++);
+	char c = *tmp;
+	*tmp = '\0';
+	if (!strToInt (n, 10, &(mgroup->forGuestAreaStart)))
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "wrong guest area specification (forGuestAreaStart): %s", v);
+		return;
+	}
+	*tmp = c;
+
+	if (*tmp == '\0')
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "wrong guest area specification (guestAreaStartStart): %s", v);
+		return;
+	}
+	else if (strncmp (tmp, "start", 5) == 0)
+	{
+		mgroup->guestAreaStartStart = true;
+		tmp += 5;
+	}
+	else if (strncmp (tmp, "end", 3) == 0)
+	{
+		mgroup->guestAreaStartStart = false;
+		tmp += 3;
+	}
+	else
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "wrong guest area specification (guestAreaStartStart): %s", v);
+		return;
+	}
+
+	if (*tmp != ',')
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "wrong guest area specification (guestAreaStartStart): %s", v);
+		return;
+	}
+
+	tmp++;
+	if (*tmp == '\0')
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "no area end spec found in the guest spec: %s", v);
+		return;
+	}
+
+	n = tmp;
+	for (; isdigit (*tmp); tmp++);
+	c = *tmp;
+	*tmp = '\0';
+	if (!strToInt (n, 10, &(mgroup->forGuestAreaEnd)))
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "wrong guest area specification (forGuestAreaEnd): %s", v);
+		return;
+	}
+	*tmp = c;
+
+	for (; isdigit (*tmp); tmp++);
+
+	if (*tmp == '\0')
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "wrong guest area specification (guestAreaStartEnd): %s", v);
+		return;
+	}
+	else if (strncmp (tmp, "start", 5) == 0)
+	{
+		mgroup->guestAreaEndStart = true;
+		tmp += 5;
+	}
+	else if (strncmp (tmp, "end", 3) == 0)
+	{
+		mgroup->guestAreaEndStart = false;
+		tmp += 3;
+	}
+	else
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "wrong guest area specification (guestAreaEndStart): %s", v);
+		return;
+	}
+
+	if (*tmp != '\0')
+	{
+		mgroup->guest = LANG_IGNORE;
+		error (WARNING, "garbage at the end of guest area specification: %s", v);
+		return;
+	}
+}
+
 static flagDefinition multilinePtrnFlagDef[] = {
-	{ '\0',  "mgroup", NULL, pre_ptrn_flag_mgroup_long ,
+	{ '\0',  "mgroup", NULL, pre_ptrn_flag_mgroup_long,
 	  "N", "a group in pattern determining the line number of tag"},
 	{ '\0',  "_advanceTo", NULL, pre_ptrn_flag_advanceTo_long,
 	  "N[start|end]", "a group in pattern from where the next scan starts [0end]"},
+	{ '\0',  "guest", NULL, pre_ptrn_flag_guest_long,
+	  "PARSER,N0[start|end],N1[start|end]", "run guest parser on the area"},
 };
 
 static bool hasMessage(const regexPattern *const ptrn)
@@ -809,7 +939,7 @@ static void common_flag_role_long (const char* const s, const char* const v, voi
 	ptrn->u.tag.roleBits |= makeRoleBit(role->id);
 }
 
-static void common_flag_anonymous_long (const char* const s, const char* const v, void* data)
+static void common_flag_anonymous_long (const char* const s CTAGS_ATTR_UNUSED, const char* const v, void* data)
 {
 	struct commonFlagData * cdata = data;
 	regexPattern *ptrn = cdata->ptrn;
@@ -1003,7 +1133,10 @@ static regexPattern *addCompiledTagPattern (struct lregexControlBlock *lcb,
 		flagsEval (flags, scopePtrnFlagDef, ARRAY_SIZE(scopePtrnFlagDef), &ptrn->scopeActions);
 
 	if (regptype == REG_PARSER_MULTI_LINE || regptype == REG_PARSER_MULTI_TABLE)
+	{
+		ptrn->mgroup.forNextScanning = 0;
 		flagsEval (flags, multilinePtrnFlagDef, ARRAY_SIZE(multilinePtrnFlagDef), &ptrn->mgroup);
+	}
 
 	if (regptype == REG_PARSER_MULTI_TABLE)
 		flagsEval (flags, multitablePtrnFlagDef, ARRAY_SIZE(multitablePtrnFlagDef), &commonFlagData);
@@ -1412,6 +1545,7 @@ static bool matchMultilineRegexPattern (struct lregexControlBlock *lcb,
 	const char *current;
 	off_t offset = 0;
 	regexPattern* patbuf = entry->pattern;
+	struct mGroupSpec *mgroup = &patbuf->mgroup;
 
 	bool result = false;
 	regmatch_t pmatch [BACK_REFERENCE_COUNT];
@@ -1437,7 +1571,7 @@ static bool matchMultilineRegexPattern (struct lregexControlBlock *lcb,
 		if (hasMessage(patbuf))
 			printMessage(lcb->owner, patbuf, (current + pmatch[0].rm_so) - start, current, pmatch);
 
-		offset = (current + pmatch [patbuf->mgroup.forLineNumberDetermination].rm_so)
+		offset = (current + pmatch [mgroup->forLineNumberDetermination].rm_so)
 				 - start;
 
 		entry->statistics.match++;
@@ -1455,9 +1589,27 @@ static bool matchMultilineRegexPattern (struct lregexControlBlock *lcb,
 			break;
 		}
 
-		delta = (patbuf->mgroup.nextFromStart
-				 ? pmatch [patbuf->mgroup.forNextScanning].rm_so
-				 : pmatch [patbuf->mgroup.forNextScanning].rm_eo);
+		if (mgroup->guest != LANG_IGNORE)
+		{
+			off_t startOffset = current - start + (
+								 mgroup->guestAreaStartStart
+								 ? pmatch [mgroup->forGuestAreaStart].rm_so
+								 : pmatch [mgroup->forGuestAreaStart].rm_eo);
+			off_t endOffset = current - start + (
+							   mgroup->guestAreaEndStart
+							   ? pmatch [mgroup->forGuestAreaEnd].rm_so
+							   : pmatch [mgroup->forGuestAreaEnd].rm_eo);
+			if (startOffset < endOffset)
+			{
+				const char *langName = getLanguageName (mgroup->guest);
+				makePromiseForAreaSpecifiedWithOffsets (langName, patbuf->regptype,
+														startOffset, endOffset);
+			}
+		}
+
+		delta = (mgroup->nextFromStart
+				 ? pmatch [mgroup->forNextScanning].rm_so
+				 : pmatch [mgroup->forNextScanning].rm_eo);
 		if (delta == 0)
 		{
 			unsigned int pos = current - start;
@@ -1641,7 +1793,9 @@ static regexPattern *addTagRegexInternal (struct lregexControlBlock *lcb,
 		{
 			if (rptr->exclusive || rptr->scopeActions & SCOPE_PLACEHOLDER
 				|| rptr->anonymous_tag_prefix
-				|| regptype == REG_PARSER_MULTI_TABLE)
+				|| regptype == REG_PARSER_MULTI_TABLE
+				|| rptr->mgroup.guest != LANG_IGNORE
+				)
 				rptr->accept_empty_name = true;
 			else
 				error (WARNING, "%s: regexp missing name pattern", regex);

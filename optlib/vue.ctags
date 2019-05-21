@@ -1,0 +1,8 @@
+--langdef=Vue
+--map-Vue=.vue
+
+--mline-regex-Vue=/<template>\n((.|\n){1,}\n)<\/template>//{guest=HTML,1start,1end}
+--mline-regex-Vue=/<script>\n((.|\n){1,}\n)<\/script>//{guest=JavaScript,1start,1end}
+--mline-regex-Vue=/<style([ ]{1,}[a-z]{1,})*>\n((.|\n){1,}\n)<\/style>//{guest=CSS,2start,2end}
+
+
