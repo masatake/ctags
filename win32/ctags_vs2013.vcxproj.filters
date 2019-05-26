@@ -339,6 +339,9 @@
     <ClCompile Include="..\parsers\diff.c">
       <Filter>Source Files\Parsers</Filter>
     </ClCompile>
+    <ClCompile Include="..\parsers\docbook.c">
+      <Filter>Source Files\Parsers</Filter>
+    </ClCompile>
     <ClCompile Include="..\parsers\dosbatch.c">
       <Filter>Source Files\Parsers</Filter>
     </ClCompile>

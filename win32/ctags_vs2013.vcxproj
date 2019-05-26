@@ -195,6 +195,7 @@
     <ClCompile Include="..\parsers\cxx\cxx_token.c" />
     <ClCompile Include="..\parsers\cxx\cxx_token_chain.c" />
     <ClCompile Include="..\parsers\diff.c" />
+    <ClCompile Include="..\parsers\docbook.c" />
     <ClCompile Include="..\parsers\dosbatch.c" />
     <ClCompile Include="..\parsers\dtd.c" />
     <ClCompile Include="..\parsers\dts.c" />
