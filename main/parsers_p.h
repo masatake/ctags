@@ -154,8 +154,8 @@
 	VeraParser, \
 	VerilogParser, \
 	SystemVerilogParser, \
-	VhdlParser, \
 	ValaParser, \
+	VhdlParser, \
 	VimParser, \
 	WindResParser, \
 	YaccParser, \
