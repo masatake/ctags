@@ -27,6 +27,14 @@ namespace Data {
          }
       }
    }
+   
+   namespace Private {
+      class Contact {
+         public string email;
+         public string phone;
+         public string id;
+      }
+   }
 }
 
 class Person {
