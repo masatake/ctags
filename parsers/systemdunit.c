@@ -139,6 +139,6 @@ extern parserDefinition* SystemdUnitParser (void)
 	def->kindCount  = ARRAY_SIZE (SystemdUnitKinds);
 	def->extensions = extensions;
 	def->parser     = findSystemdUnitTags;
-	def->useCork    = true;
+	def->useCork    = CORK_QUEUE;
 	return def;
 }
