@@ -607,6 +607,7 @@ static void createTag (tokenInfo *const token)
 {
 	tagEntryInfo tag;
 	verilogKind kind;
+	int corkIndex;
 
 	/* Determine if kind is prototype */
 	if (currentContext->prototype)
@@ -646,7 +647,10 @@ static void createTag (tokenInfo *const token)
 		tag.extensionFields.inheritance = vStringValue (token->inheritance);
 		verbose ("Class %s extends %s\n", vStringValue (token->name), tag.extensionFields.inheritance);
 	}
-	makeTagEntry (&tag);
+	corkIndex = makeTagEntry (&tag);
+	if (isInputLanguage (Lang_systemverilog))
+		registerEntry (corkIndex);
+
 	if (isXtagEnabled(XTAG_QUALIFIED_TAGS) && currentContext->kind != K_UNDEFINED)
 	{
 		vString *const scopedName = vStringNew ();
@@ -657,7 +661,9 @@ static void createTag (tokenInfo *const token)
 		tag.name = vStringValue (scopedName);
 
 		markTagExtraBit (&tag, XTAG_QUALIFIED_TAGS);
-		makeTagEntry (&tag);
+		corkIndex = makeTagEntry (&tag);
+		if (isInputLanguage (Lang_systemverilog))
+			registerEntry (corkIndex);
 
 		vStringDelete (scopedName);
 	}
@@ -1124,6 +1130,26 @@ static void processClass (tokenInfo *const token)
 	}
 }
 
+static bool find_typedef (unsigned int corkIndex,
+						  tagEntryInfo *entry, void *data)
+{
+	if (entry->kindIndex == K_TYPEDEF)
+	{
+		*(bool *)data = true;
+		return false;
+	}
+	return true;
+}
+
+static bool isTypedef (tokenInfo* token)
+{
+	bool t = false;
+	if (vStringLength (token->name) > 0)
+		foreachEntriesInScope (CORK_NIL, vStringValue (token->name),
+							   find_typedef, &t);
+	return t;
+}
+
 static void tagNameList (tokenInfo* token, int c)
 {
 	verilogKind localKind;
@@ -1160,7 +1186,8 @@ static void tagNameList (tokenInfo* token, int c)
 			readIdentifier (token, c);
 			localKind = getKindForToken (token);
 			/* Create tag in case name is not a known kind ... */
-			if (localKind == K_UNDEFINED)
+			if (localKind == K_UNDEFINED
+				&& !(isInputLanguage (Lang_systemverilog) && isTypedef (token)))
 			{
 				createTag (token);
 			}
@@ -1384,5 +1411,6 @@ extern parserDefinition* SystemVerilogParser (void)
 	def->extensions = extensions;
 	def->parser     = findVerilogTags;
 	def->initialize = initializeSystemVerilog;
+	def->useCork = CORK_QUEUE|CORK_SYMTAB;
 	return def;
 }
