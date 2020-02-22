@@ -430,6 +430,7 @@ AM_CONDITIONAL([USE_ULONGLONG_FORMATTER_FOR_SIZE_T], [test "x${use_ulonglong_for
 AC_C_CONST
 AC_OBJEXT
 AC_EXEEXT
+AC_C_TYPEOF
 
 if test "${enable_static}" = "yes"; then
 	LDFLAGS="$LDFLAGS -static"
