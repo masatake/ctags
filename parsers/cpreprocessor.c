@@ -107,6 +107,9 @@ typedef struct sCppState {
 		unsigned int nestLevel;  /* level 0 is not used */
 		conditionalInfo ifdef [MaxCppNestingLevel];
 	} directive;
+
+	hashTable * fileMacroTable;
+
 } cppState;
 
 
@@ -158,6 +161,7 @@ static fieldDefinition CPreProFields[COUNT_FIELD] = {
 */
 
 static bool doesExaminCodeWithInIf0Branch;
+static bool doesExpandMacros;
 
 /*
 * CXX parser state. This is stored at the beginning of a conditional.
@@ -219,6 +223,13 @@ static cppState Cpp = {
 		}
 	}  /* directive */
 };
+
+/*
+*   FUNCTION DECLARATIONS
+*/
+
+static hashTable *makeMacroTable (void);
+static cppMacroInfo * saveMacro(hashTable *table, const char * macro);
 
 /*
 *   FUNCTION DEFINITIONS
@@ -326,6 +337,11 @@ static void cppInitCommon(langType clientLang,
 	Cpp.directive.ifdef [0].ignoring     = false;
 
 	Cpp.directive.name = vStringNewOrClear (Cpp.directive.name);
+
+	Cpp.fileMacroTable =
+		doesExpandMacros && isFieldEnabled (FIELD_SIGNATURE) && isFieldEnabled (Cpp.macrodefFieldIndex)
+		? makeMacroTable ()
+		: NULL;
 }
 
 extern void cppInit (const bool state, const bool hasAtLiteralStrings,
@@ -368,6 +384,12 @@ extern void cppTerminate (void)
 	}
 
 	Cpp.clientLang = LANG_IGNORE;
+
+	if (Cpp.fileMacroTable)
+	{
+		hashTableDelete (Cpp.fileMacroTable);
+		Cpp.fileMacroTable = NULL;
+	}
 }
 
 extern void cppBeginStatement (void)
@@ -891,6 +913,9 @@ static int directiveDefine (const int c, bool undef)
 		}
 	}
 	Cpp.directive.state = DRCTV_NONE;
+
+	if (r != CORK_NIL && Cpp.fileMacroTable)
+		registerEntry (r);
 	return r;
 }
 
@@ -1625,14 +1650,66 @@ static void findCppTags (void)
 
 static hashTable * cmdlineMacroTable;
 
+
+static bool buildMacroInfoFromTagEntry (unsigned int corkIndex,
+										tagEntryInfo * entry,
+										void * data)
+{
+	cppMacroInfo **info = data;
+
+	if (entry->langType == Cpp.clientLang
+		&& entry->kindIndex == Cpp.defineMacroKindIndex
+		&& isRoleAssigned (entry, ROLE_DEFINITION_INDEX))
+	{
+		vString *macrodef = vStringNewInit (entry->name);
+		if (entry->extensionFields.signature)
+			vStringCatS (macrodef, entry->extensionFields.signature);
+		vStringPut (macrodef, '=');
+
+		const char *val = getParserFieldForType (entry, Cpp.macrodefFieldIndex);
+		if (val)
+			vStringCatS (macrodef, val);
+
+		*info = saveMacro (Cpp.fileMacroTable, vStringValue (macrodef));
+		vStringDelete (macrodef);
+
+		return false;
+	}
+	return true;
+}
+
+extern cppMacroInfo * cppFindMacroFromSymtab (const char *const name)
+{
+	cppMacroInfo *info = NULL;
+	foreachEntriesInScope (CORK_NIL, name, buildMacroInfoFromTagEntry, &info);
+
+	return info;
+}
+
 /*  Determines whether or not "name" should be ignored, per the ignore list.
  */
-extern const cppMacroInfo * cppFindMacro(const char *const name)
+extern const cppMacroInfo * cppFindMacro (const char *const name)
 {
-	if(!cmdlineMacroTable)
-		return NULL;
+	cppMacroInfo *info;
 
-	return (const cppMacroInfo *)hashTableGetItem(cmdlineMacroTable,(char *)name);
+	if (cmdlineMacroTable)
+	{
+		info = (cppMacroInfo *)hashTableGetItem (cmdlineMacroTable,(char *)name);
+		if (info)
+			return info;
+	}
+
+	if (Cpp.fileMacroTable)
+	{
+		info = (cppMacroInfo *)hashTableGetItem (Cpp.fileMacroTable,(char *)name);
+		if (info)
+			return info;
+
+		info = cppFindMacroFromSymtab(name);
+		if (info)
+			return info;
+	}
+	return NULL;
 }
 
 extern vString * cppBuildMacroReplacement(
@@ -2081,6 +2158,12 @@ static void initializeCpp (const langType language)
 	DEFAULT_TRASH_BOX(cmdlineMacroTable,hashTableDelete);
 }
 
+static void CpreProExpandMacrosInInput (const langType language CTAGS_ATTR_UNUSED, const char *name, const char *arg)
+{
+	doesExpandMacros = paramParserBool (arg, doesExpandMacros,
+										name, "parameter");
+}
+
 static void CpreProInstallIgnoreToken (const langType language CTAGS_ATTR_UNUSED, const char *optname CTAGS_ATTR_UNUSED, const char *arg)
 {
 	if (arg == NULL || arg[0] == '\0')
@@ -2127,6 +2210,10 @@ static parameterHandlerTable CpreProParameterHandlerTable [] = {
 	  .desc = "define replacement for an identifier (name(params,...)=definition)",
 	  .handleParameter = CpreProInstallMacroToken,
 	},
+	{ .name = "_expand",
+	  .desc = "expand macro definitions found in input file (true or [false])",
+	  .handleParameter = CpreProExpandMacrosInInput,
+	}
 };
 
 extern parserDefinition* CPreProParser (void)
@@ -2143,6 +2230,6 @@ extern parserDefinition* CPreProParser (void)
 	def->parameterHandlerTable = CpreProParameterHandlerTable;
 	def->parameterHandlerCount = ARRAY_SIZE(CpreProParameterHandlerTable);
 
-	def->useCork = CORK_QUEUE;
+	def->useCork = CORK_QUEUE | CORK_SYMTAB;
 	return def;
 }
