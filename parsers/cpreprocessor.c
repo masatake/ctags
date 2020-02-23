@@ -2124,7 +2124,7 @@ static parameterHandlerTable CpreProParameterHandlerTable [] = {
 	  .handleParameter = CpreProInstallIgnoreToken,
 	},
 	{ .name = "define",
-	  .desc = "define replacement for an identifier",
+	  .desc = "define replacement for an identifier (name(params,...)=definition)",
 	  .handleParameter = CpreProInstallMacroToken,
 	},
 };
