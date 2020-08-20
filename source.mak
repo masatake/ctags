@@ -231,6 +231,7 @@ PARSER_SRCS =				\
 	parsers/dtd.c			\
 	parsers/dts.c			\
 	parsers/eiffel.c		\
+	parsers/endf.c			\
 	parsers/erlang.c		\
 	parsers/falcon.c		\
 	parsers/flex.c			\

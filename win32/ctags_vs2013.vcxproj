@@ -207,6 +207,7 @@
     <ClCompile Include="..\parsers\dtd.c" />
     <ClCompile Include="..\parsers\dts.c" />
     <ClCompile Include="..\parsers\eiffel.c" />
+    <ClCompile Include="..\parsers\endf.c" />
     <ClCompile Include="..\parsers\erlang.c" />
     <ClCompile Include="..\parsers\falcon.c" />
     <ClCompile Include="..\parsers\flex.c" />

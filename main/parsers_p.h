@@ -74,6 +74,7 @@
 	ElixirParser, \
 	ElmParser, \
 	EmacsLispParser, \
+	ENDFParser, \
 	ErlangParser, \
 	FalconParser, \
 	FlexParser, \
