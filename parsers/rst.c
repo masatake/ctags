@@ -37,8 +37,18 @@ typedef enum {
 	K_SUBSUBSECTION,
 	K_CITATION,
 	K_TARGET,
+	K_XFILE,
 	SECTION_COUNT
 } rstKind;
+
+typedef enum {
+	RST_XFILE_INCLUDED,
+} rstXfileRole;
+
+static roleDefinition RstXfileRoles [] = {
+	{ true, "included", "included with include:: directive" },
+};
+
 
 static kindDefinition RstKinds[] = {
 	{ true, 'c', "chapter",       "chapters"},
@@ -47,6 +57,8 @@ static kindDefinition RstKinds[] = {
 	{ true, 't', "subsubsection", "subsubsections" },
 	{ true, 'C', "citation",      "citations"},
 	{ true, 'T', "target",        "targets" },
+	{ true, 'X', "xfile",         "external files",
+	  .referenceOnly = false, ATTACH_ROLES(RstXfileRoles)},
 };
 
 typedef enum {
@@ -100,11 +112,11 @@ static NestingLevel *getNestingLevel(const int kind)
 	return nl;
 }
 
-static int makeTargetRstTag(const vString* const name, rstKind kindex)
+static int makeTargetRstTag(const vString* const name, rstKind kindex, int rolex)
 {
 	tagEntryInfo e;
 
-	initTagEntry (&e, vStringValue (name), kindex);
+	initRefTagEntry (&e, vStringValue (name), kindex, rolex);
 
 	const NestingLevel *nl = nestingLevelsGetCurrent(nestingLevels);
 	tagEntryInfo *parent = NULL;
@@ -248,11 +260,16 @@ static const unsigned char *is_markup_line (const unsigned char *line, char *ref
 	return NULL;
 }
 
-static int capture_markup (const unsigned char *target_line, char defaultTerminator, rstKind kindex)
+static int capture_markup (const unsigned char *target_line, const bool skipWhitespacePrefix, char defaultTerminator,
+						   rstKind kindex, int rolex)
 {
 	vString *name = vStringNew ();
 	unsigned char terminator;
 	int r = CORK_NIL;
+
+	if (skipWhitespacePrefix)
+		while (isblank (*target_line))
+			target_line++;
 
 	if (*target_line == '`')
 		terminator = '`';
@@ -299,7 +316,7 @@ static int capture_markup (const unsigned char *target_line, char defaultTermina
 	if (vStringLength (name) == 0)
 		goto out;
 
-	r = makeTargetRstTag (name, kindex);
+	r = makeTargetRstTag (name, kindex, rolex);
 
  out:
 	vStringDelete (name);
@@ -325,7 +342,7 @@ static void findRstTags (void)
 			/* Handle .. _target:
 			 * http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#hyperlink-targets
 			 */
-			if (capture_markup (markup_line, ':', K_TARGET) != CORK_NIL)
+			if (capture_markup (markup_line, false, ':', K_TARGET, ROLE_DEFINITION_INDEX) != CORK_NIL)
 			{
 				vStringClear (name);
 				continue;
@@ -336,7 +353,18 @@ static void findRstTags (void)
 			/* Handle .. [citation]
 			 * https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#citations
 			 */
-			if (capture_markup (markup_line, ']', K_CITATION) != CORK_NIL)
+			if (capture_markup (markup_line, true, ']', K_CITATION, ROLE_DEFINITION_INDEX) != CORK_NIL)
+			{
+				vStringClear (name);
+				continue;
+			}
+		}
+		else if ((markup_line = is_markup_line (line, "include:: ", 10)) != NULL)
+		{
+			/* Handle .. include:: external file
+			 * https://docutils.sourceforge.io/docs/ref/rst/directives.html#including-an-external-document-fragment
+			 */
+			if (capture_markup (markup_line, true, '\0', K_XFILE, RST_XFILE_INCLUDED) != CORK_NIL)
 			{
 				vStringClear (name);
 				continue;

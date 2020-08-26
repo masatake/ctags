@@ -1,0 +1,9 @@
+fileA.rst	input.rst	/^.. include:: fileA.rst$/;"	X	roles:included
+fileB.rst	input.rst	/^..  include:: fileB.rst$/;"	X	roles:included
+fileC.rst	input.rst	/^..		 include:: fileC.rst$/;"	X	roles:included
+space-fileD.rst	input.rst	/^.. include::  space-fileD.rst$/;"	X	roles:included
+space-fileE.rst	input.rst	/^..  include::  space-fileE.rst$/;"	X	roles:included
+space-fileF.rst	input.rst	/^..		 include::  space-fileF.rst$/;"	X	roles:included
+tab-fileG.rst	input.rst	/^.. include::  	tab-fileG.rst$/;"	X	roles:included
+tab-fileH.rst	input.rst	/^..  include::  	tab-fileH.rst$/;"	X	roles:included
+tab-fileI.rst	input.rst	/^..		 include::  	tab-fileI.rst$/;"	X	roles:included
