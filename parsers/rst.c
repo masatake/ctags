@@ -235,11 +235,16 @@ static int utf8_strlen(const char *buf, int buf_len)
 }
 
 
-static const unsigned char *is_markup_line (const unsigned char *line, char reftype)
+static const unsigned char *is_markup_line (const unsigned char *line, char *reftype, size_t len)
 {
-	if ((line [0] == '.') && (line [1] == '.') && (line [2] == ' ')
-		&& (line [3] == reftype))
-		return line + 4;
+	if ((line [0] == '.') && (line [1] == '.') && (isblank (line [2])))
+	{
+		int i = 3;
+		while (isblank (line [i]))
+			i++;
+		if (strncmp((const char *)(line + i), reftype, len) == 0)
+			return line + i + len;
+	}
 	return NULL;
 }
 
@@ -315,7 +320,7 @@ static void findRstTags (void)
 
 	while ((line = readLineFromInputFile ()) != NULL)
 	{
-		if ((markup_line = is_markup_line (line, '_')) != NULL)
+		if ((markup_line = is_markup_line (line, "_", 1)) != NULL)
 		{
 			/* Handle .. _target:
 			 * http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#hyperlink-targets
@@ -326,7 +331,7 @@ static void findRstTags (void)
 				continue;
 			}
 		}
-		else if ((markup_line = is_markup_line (line, '[')) != NULL)
+		else if ((markup_line = is_markup_line (line, "[", 1)) != NULL)
 		{
 			/* Handle .. [citation]
 			 * https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#citations

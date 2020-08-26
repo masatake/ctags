@@ -14,7 +14,7 @@ section1
 
 .. _       	     `b r o k e n 2`   :
 
-..   	  _broken1:
+..   	  _this-is-not-broken1:
 
 .. _INCLUDING \: in name:
 

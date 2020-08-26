@@ -3,4 +3,5 @@ title-target	input.rst	/^.. _title-target:$/;"	T	chapter:TITLE
 section0	input.rst	/^section0$/;"	s	chapter:TITLE
 section target0	input.rst	/^.. _`section target0`:$/;"	T	section:section0
 section1	input.rst	/^section1$/;"	s	chapter:TITLE
+this-is-not-broken1	input.rst	/^..   	  _this-is-not-broken1:$/;"	T	section:section1
 INCLUDING \\: in name	input.rst	/^.. _INCLUDING \\: in name:$/;"	T	section:section1
