@@ -1,4 +1,5 @@
 /*
+*   Copyright (c) 2020-2021, getzze <getzze@gmail.com>
 *
 *   This source code is released for free distribution under the terms of the
 *   GNU General Public License version 2 or (at your option) any later version.
@@ -9,7 +10,7 @@
 /*
 *   INCLUDE FILES
 */
-#include "general.h"	/* must always come first */
+#include "general.h"    /* must always come first */
 
 #include <string.h>
 
@@ -54,19 +55,19 @@ static kindDefinition JuliaKinds [] = {
 };
 
 typedef enum {
-	TOKEN_NONE=0,         /* none */
-	TOKEN_WHITESPACE,
-	TOKEN_PAREN_BLOCK,
-	TOKEN_BRACKET_BLOCK,
-	TOKEN_CURLY_BLOCK,
+    TOKEN_NONE=0,         /* none */
+    TOKEN_WHITESPACE,
+    TOKEN_PAREN_BLOCK,
+    TOKEN_BRACKET_BLOCK,
+    TOKEN_CURLY_BLOCK,
     TOKEN_OPEN_BLOCK,
     TOKEN_CLOSE_BLOCK,
     TOKEN_TYPE_ANNOTATION,
     TOKEN_TYPE_WHERE,
-	TOKEN_CONST,
-	TOKEN_STRING,         /*  = 10 */
+    TOKEN_CONST,
+    TOKEN_STRING,         /*  = 10 */
     TOKEN_MACROCALL,
-	TOKEN_IDENTIFIER,
+    TOKEN_IDENTIFIER,
     TOKEN_MODULE,
     TOKEN_MACRO,
     TOKEN_FUNCTION,
@@ -77,22 +78,22 @@ typedef enum {
     TOKEN_EXPORT,         /*  = 20 */
     TOKEN_NEWLINE,
     TOKEN_SEMICOLON,
-	TOKEN_EOF,
-	TOKEN_COUNT
+    TOKEN_EOF,
+    TOKEN_COUNT
 } tokenType;
 
 typedef struct {
-	/* Characters */
-	int prev_c;
-	int cur_c;
-	int next_c;
+    /* Characters */
+    int prev_c;
+    int cur_c;
+    int next_c;
 
-	/* Tokens */
+    /* Tokens */
     bool first_token;
-	int cur_token;
-	vString* token_str;
-	unsigned long line;
-	MIOPos pos;
+    int cur_token;
+    vString* token_str;
+    unsigned long line;
+    MIOPos pos;
 } lexerState;
 
 /*
@@ -122,34 +123,34 @@ static int endswith(const char* what, const char* withwhat)
 /* Resets the scope string to the old length */
 static void resetScope (vString *scope, size_t old_len)
 {
-	scope->length = old_len;
-	scope->buffer[old_len] = '\0';
+    scope->length = old_len;
+    scope->buffer[old_len] = '\0';
 }
 
 /* Adds a name to the end of the scope string */
 static void addToScope (vString *scope, vString *name)
 {
-	if (vStringLength(scope) > 0)
+    if (vStringLength(scope) > 0)
     {
-		vStringCatS(scope, ".");
+        vStringPut(scope, '.');
     }
-	vStringCat(scope, name);
+    vStringCat(scope, name);
 }
 
 /* Reads a character from the file */
 static void advanceChar (lexerState *lexer)
 {
-	lexer->prev_c = lexer->cur_c;
-	lexer->cur_c  = lexer->next_c;
-	lexer->next_c = getcFromInputFile();
+    lexer->prev_c = lexer->cur_c;
+    lexer->cur_c  = lexer->next_c;
+    lexer->next_c = getcFromInputFile();
 }
 
 /* Reads N characters from the file */
 static void advanceNChar (lexerState *lexer, int n)
 {
-	while (n--)
+    while (n--)
     {
-		advanceChar(lexer);
+        advanceChar(lexer);
     }
 }
 
@@ -157,11 +158,11 @@ static void advanceNChar (lexerState *lexer, int n)
  * (set by MAX_STRING_LENGTH), and then read the next character from the file */
 static void advanceAndStoreChar (lexerState *lexer)
 {
-	if (vStringLength(lexer->token_str) < MAX_STRING_LENGTH)
+    if (vStringLength(lexer->token_str) < MAX_STRING_LENGTH)
     {
-		vStringPut(lexer->token_str, (char) lexer->cur_c);
+        vStringPut(lexer->token_str, (char) lexer->cur_c);
     }
-	advanceChar(lexer);
+    advanceChar(lexer);
 }
 
 static bool isWhitespace (int c, bool newline)
@@ -170,12 +171,12 @@ static bool isWhitespace (int c, bool newline)
     {
         return c == ' ' || c == '\t' || c == '\r' || c == '\n';
     }
-	return c == ' ' || c == '\t';
+    return c == ' ' || c == '\t';
 }
 
 static bool isAscii (int c)
 {
-	return (c >= 0) && (c < 0x80);
+    return (c >= 0) && (c < 0x80);
 }
 
 static bool isOperator (int c)
@@ -196,7 +197,7 @@ static bool isIdentifierFirstCharacter (int c)
     return (bool) ((isAscii(c) && (isalpha (c) || c == '_')) || c >= 0xC0);
 }
 
-/* This does not distinguish Unicode letters from operators... 
+/* This does not distinguish Unicode letters from operators...
  * The dot is considered an identifier character for fully qualified names
  * */
 static bool isIdentifierCharacter (int c)
@@ -206,9 +207,9 @@ static bool isIdentifierCharacter (int c)
 
 static void skipWhitespace (lexerState *lexer, bool newline)
 {
-	while (isWhitespace(lexer->cur_c, newline))
+    while (isWhitespace(lexer->cur_c, newline))
     {
-		advanceChar(lexer);
+        advanceChar(lexer);
     }
 }
 
@@ -220,7 +221,7 @@ static bool isTranspose (int c)
 
 
 /*
- *  Lexer functions 
+ *  Lexer functions
  * */
 
 /* Check that the current character sequence is a type declaration or inheritance */
@@ -262,44 +263,44 @@ static bool skipNewLine (lexerState *lexer)
     return false;
 }
 
-/* Skip a single comment or multiline comment 
+/* Skip a single comment or multiline comment
  * A single line comment starts with #
  * A multi-line comment is encapsulated in #=...=# and they are nesting
  * */
 static void skipComment (lexerState *lexer)
 {
-	/* # */
-	if (lexer->next_c != '=')
-	{
-		advanceNChar(lexer, 1);
-		while (lexer->cur_c != EOF && lexer->cur_c != '\n')
+    /* # */
+    if (lexer->next_c != '=')
+    {
+        advanceNChar(lexer, 1);
+        while (lexer->cur_c != EOF && lexer->cur_c != '\n')
         {
-			advanceChar(lexer);
+            advanceChar(lexer);
         }
-	}
-	/* block comment */
-	else /* if (lexer->next_c == '=') */
-	{
-		int level = 1;
-		advanceNChar(lexer, 2);
-		while (lexer->cur_c != EOF && level > 0)
-		{
-			if (lexer->cur_c == '=' && lexer->next_c == '#')
-			{
-				level--;
-				advanceNChar(lexer, 2);
-			}
-			else if (lexer->cur_c == '#' && lexer->next_c == '=')
-			{
-				level++;
-				advanceNChar(lexer, 2);
-			}
-			else
-			{
-				advanceChar(lexer);
-			}
-		}
-	}
+    }
+    /* block comment */
+    else /* if (lexer->next_c == '=') */
+    {
+        int level = 1;
+        advanceNChar(lexer, 2);
+        while (lexer->cur_c != EOF && level > 0)
+        {
+            if (lexer->cur_c == '=' && lexer->next_c == '#')
+            {
+                level--;
+                advanceNChar(lexer, 2);
+            }
+            else if (lexer->cur_c == '#' && lexer->next_c == '=')
+            {
+                level++;
+                advanceNChar(lexer, 2);
+            }
+            else
+            {
+                advanceChar(lexer);
+            }
+        }
+    }
 }
 
 static void scanIdentifier (lexerState *lexer, bool clear)
@@ -310,9 +311,9 @@ static void scanIdentifier (lexerState *lexer, bool clear)
     }
 
     do
-	{
-		advanceAndStoreChar(lexer);
-	} while(lexer->cur_c != EOF && isIdentifierCharacter(lexer->cur_c));
+    {
+        advanceAndStoreChar(lexer);
+    } while(lexer->cur_c != EOF && isIdentifierCharacter(lexer->cur_c));
 }
 
 /* Double-quoted strings, we only care about the \" escape. These
@@ -324,7 +325,7 @@ static void scanString (lexerState *lexer)
     bool istriple = false;
 
     /* Pass the first doublequote */
-	advanceAndStoreChar(lexer);
+    advanceAndStoreChar(lexer);
 
     /* Check for triple doublequotes */
     if (lexer->cur_c == '"' && lexer->next_c == '"')
@@ -345,7 +346,7 @@ static void scanString (lexerState *lexer)
     }
 
     while (lexer->cur_c != EOF && lexer->cur_c != '"')
-	{
+    {
         /* Check for interpolation before checking for end of string */
         if (lexer->cur_c == '$' && lexer->next_c == '(')
         {
@@ -356,12 +357,12 @@ static void scanString (lexerState *lexer)
             continue;
         }
 
-		if (lexer->cur_c == '\\' && 
+        if (lexer->cur_c == '\\' &&
             (lexer->next_c == '"' || lexer->next_c == '\\'))
         {
-			advanceAndStoreChar(lexer);
+            advanceAndStoreChar(lexer);
         }
-		advanceAndStoreChar(lexer);
+        advanceAndStoreChar(lexer);
 
         /* Cancel up to 2 doublequotes if triple string */
         if (istriple && lexer->cur_c == '"')
@@ -372,9 +373,9 @@ static void scanString (lexerState *lexer)
                 advanceAndStoreChar(lexer);
             }
         }
-	}
+    }
     /* Pass the last doublequote */
-	advanceAndStoreChar(lexer);
+    advanceAndStoreChar(lexer);
 }
 
 
@@ -394,35 +395,35 @@ static bool scanCharacterOrTranspose (lexerState *lexer)
         }
         return false;
     }
-        
-	//vStringClear(lexer->token_str);
-	advanceAndStoreChar(lexer);
 
-	if (lexer->cur_c == '\\')
-	{
-		advanceAndStoreChar(lexer);
-		/* The \' \\ \' \' (literally '\'') case */
-		if (lexer->cur_c == '\'' && lexer->next_c == '\'')
-		{
-			advanceAndStoreChar(lexer);
-			advanceAndStoreChar(lexer);
-		}
-		/* The \' \\ [^']+ \' case */
-		else
-		{
-			while (lexer->cur_c != EOF && lexer->cur_c != '\'')
+    //vStringClear(lexer->token_str);
+    advanceAndStoreChar(lexer);
+
+    if (lexer->cur_c == '\\')
+    {
+        advanceAndStoreChar(lexer);
+        /* The \' \\ \' \' (literally '\'') case */
+        if (lexer->cur_c == '\'' && lexer->next_c == '\'')
+        {
+            advanceAndStoreChar(lexer);
+            advanceAndStoreChar(lexer);
+        }
+        /* The \' \\ [^']+ \' case */
+        else
+        {
+            while (lexer->cur_c != EOF && lexer->cur_c != '\'')
             {
-				advanceAndStoreChar(lexer);
+                advanceAndStoreChar(lexer);
             }
-		}
-	}
-	/* The \' [^'] \' and  \' \' \' cases */
-	else if (lexer->next_c == '\'')
-	{
-		advanceAndStoreChar(lexer);
-		advanceAndStoreChar(lexer);
-	}
-	/* Otherwise it is malformed */
+        }
+    }
+    /* The \' [^'] \' and  \' \' \' cases */
+    else if (lexer->next_c == '\'')
+    {
+        advanceAndStoreChar(lexer);
+        advanceAndStoreChar(lexer);
+    }
+    /* Otherwise it is malformed */
     return true;
 }
 
@@ -430,41 +431,41 @@ static bool scanCharacterOrTranspose (lexerState *lexer)
 static void scanBlock (lexerState *lexer, int open, int close, bool convert_newline)
 {
     /* Assume the current char is `open` */
-	int level = 1;
+    int level = 1;
 
     /* Pass the first opening */
-	advanceAndStoreChar(lexer);
+    advanceAndStoreChar(lexer);
 
     while (lexer->cur_c != EOF && level > 0)
-	{
+    {
         /* Parse everything */
-		if (lexer->cur_c == ' ' || lexer->cur_c == '\t')
+        if (lexer->cur_c == ' ' || lexer->cur_c == '\t')
         {
             skipWhitespace(lexer, false);
             vStringPut(lexer->token_str, ' ');
         }
-		if (lexer->cur_c == '#')
-		{
-			skipComment(lexer);
-		}
+        if (lexer->cur_c == '#')
+        {
+            skipComment(lexer);
+        }
         else if (lexer->cur_c == '\"')
-		{
-			scanString(lexer);
-		}
-		else if (lexer->cur_c == '\'')
-		{
-			scanCharacterOrTranspose(lexer);
-		}
-        
+        {
+            scanString(lexer);
+        }
+        else if (lexer->cur_c == '\'')
+        {
+            scanCharacterOrTranspose(lexer);
+        }
+
         /* Parse opening/closing */
         if (lexer->cur_c == open)
-		{
-			level++;
-		}
-		else if (lexer->cur_c == close)
-		{
-			level--;
-		}
+        {
+            level++;
+        }
+        else if (lexer->cur_c == close)
+        {
+            level--;
+        }
 
         if (convert_newline && skipNewLine(lexer))
         {
@@ -475,7 +476,7 @@ static void scanBlock (lexerState *lexer, int open, int close, bool convert_newl
             advanceAndStoreChar(lexer);
         }
 
-	}
+    }
     /* Lexer position is just after `close` */
 }
 
@@ -509,7 +510,7 @@ static void scanTypeAnnotation (lexerState *lexer)
     /* assume that current char is '<', '>' or ':', followed by ':' */
     advanceAndStoreChar(lexer);
     advanceAndStoreChar(lexer);
-    
+
     skipWhitespace(lexer, true);
     scanIdentifier(lexer, false);
     if (lexer->cur_c == '{')
@@ -523,14 +524,14 @@ static void scanTypeAnnotation (lexerState *lexer)
  */
 static void scanTypeWhere (lexerState *lexer)
 {
-    /* assume that current token is 'where' 
+    /* assume that current token is 'where'
      * allow line continuation */
     vStringPut(lexer->token_str, ' ');
     skipWhitespace(lexer, true);
 
-	while (lexer->cur_c != EOF)
+    while (lexer->cur_c != EOF)
     {
-            
+
         if (lexer->cur_c == '{')
         {
             scanCurlyBlock(lexer);
@@ -550,15 +551,15 @@ static void scanTypeWhere (lexerState *lexer)
             scanTypeAnnotation(lexer);
             //skipWhitespace(lexer, false);
         }
-		else if (lexer->cur_c == '#')
-		{
-			skipComment(lexer);
+        else if (lexer->cur_c == '#')
+        {
+            skipComment(lexer);
             /* allow line continuation */
             if (endswith(lexer->token_str->buffer, "where "))
             {
                 skipWhitespace(lexer, true);
             }
-		}
+        }
         else if (isWhitespace(lexer->cur_c, false))
         {
             while (isWhitespace(lexer->cur_c, false))
@@ -658,11 +659,11 @@ static int parseIdentifier (lexerState *lexer)
  * token starts are stored literally, e.g. token may equal to a character '#'. */
 static int advanceToken (lexerState *lexer, bool skip_whitespace)
 {
-	bool have_whitespace = false;
+    bool have_whitespace = false;
     bool newline = false;
-	lexer->line = getInputLineNumber();
-	lexer->pos = getInputFilePosition();
-    
+    lexer->line = getInputLineNumber();
+    lexer->pos = getInputFilePosition();
+
     /* the next token is the first token of the line */
     if (lexer->cur_token == TOKEN_NEWLINE ||
         lexer->cur_token == TOKEN_SEMICOLON)
@@ -673,43 +674,43 @@ static int advanceToken (lexerState *lexer, bool skip_whitespace)
     {
         lexer->first_token = false;
     }
-    
-	while (lexer->cur_c != EOF)
-	{
-		/* skip whitespaces but not newlines */
+
+    while (lexer->cur_c != EOF)
+    {
+        /* skip whitespaces but not newlines */
         if (isWhitespace(lexer->cur_c, newline))
-		{
-			skipWhitespace(lexer, newline);
-			have_whitespace = true;
-		}
-		else if (lexer->cur_c == '#')
-		{
-			skipComment(lexer);
-			have_whitespace = true;
-		}
-		else
-		{
-			if (have_whitespace && !skip_whitespace)
+        {
+            skipWhitespace(lexer, newline);
+            have_whitespace = true;
+        }
+        else if (lexer->cur_c == '#')
+        {
+            skipComment(lexer);
+            have_whitespace = true;
+        }
+        else
+        {
+            if (have_whitespace && !skip_whitespace)
             {
-				return lexer->cur_token = TOKEN_WHITESPACE;
+                return lexer->cur_token = TOKEN_WHITESPACE;
             }
-			break;
-		}
-	}
-	lexer->line = getInputLineNumber();
-	lexer->pos = getInputFilePosition();
-	while (lexer->cur_c != EOF)
-	{
-		if (lexer->cur_c == '"')
-		{
+            break;
+        }
+    }
+    lexer->line = getInputLineNumber();
+    lexer->pos = getInputFilePosition();
+    while (lexer->cur_c != EOF)
+    {
+        if (lexer->cur_c == '"')
+        {
             vStringClear(lexer->token_str);
             scanString(lexer);
-			return lexer->cur_token = TOKEN_STRING;
-		}
-		else if (lexer->cur_c == '\'')
-		{
+            return lexer->cur_token = TOKEN_STRING;
+        }
+        else if (lexer->cur_c == '\'')
+        {
             vStringClear(lexer->token_str);
-			if (scanCharacterOrTranspose(lexer))
+            if (scanCharacterOrTranspose(lexer))
             {
                 return lexer->cur_token = TOKEN_STRING;
             }
@@ -717,49 +718,49 @@ static int advanceToken (lexerState *lexer, bool skip_whitespace)
             {
                 return lexer->cur_token = '\'';
             }
-		}
-		else if (isIdentifierFirstCharacter(lexer->cur_c))
-		{
-			return parseIdentifier(lexer);
-		}
-		else if (lexer->cur_c == '@')
-		{
+        }
+        else if (isIdentifierFirstCharacter(lexer->cur_c))
+        {
+            return parseIdentifier(lexer);
+        }
+        else if (lexer->cur_c == '@')
+        {
             vStringClear(lexer->token_str);
-			advanceAndStoreChar(lexer);
+            advanceAndStoreChar(lexer);
             do
             {
                 advanceAndStoreChar(lexer);
             } while(lexer->cur_c != EOF && isIdentifierCharacter(lexer->cur_c));
             return lexer->cur_token = TOKEN_MACROCALL;
-		}
-		else if (lexer->cur_c == '(')
-		{
+        }
+        else if (lexer->cur_c == '(')
+        {
             vStringClear(lexer->token_str);
             scanParenBlock(lexer);
-			return lexer->cur_token = TOKEN_PAREN_BLOCK;
-		}
-		else if (lexer->cur_c == '[')
-		{
+            return lexer->cur_token = TOKEN_PAREN_BLOCK;
+        }
+        else if (lexer->cur_c == '[')
+        {
             vStringClear(lexer->token_str);
             scanIndexBlock(lexer);
-			return lexer->cur_token = TOKEN_BRACKET_BLOCK;
-		}
-		else if (lexer->cur_c == '{')
-		{
+            return lexer->cur_token = TOKEN_BRACKET_BLOCK;
+        }
+        else if (lexer->cur_c == '{')
+        {
             vStringClear(lexer->token_str);
             scanCurlyBlock(lexer);
-			return lexer->cur_token = TOKEN_CURLY_BLOCK;
-		}
-		else if (isTypeDecl(lexer))
-		{
+            return lexer->cur_token = TOKEN_CURLY_BLOCK;
+        }
+        else if (isTypeDecl(lexer))
+        {
             vStringClear(lexer->token_str);
-			scanTypeAnnotation(lexer);
-			return lexer->cur_token = TOKEN_TYPE_ANNOTATION;
-		}
+            scanTypeAnnotation(lexer);
+            return lexer->cur_token = TOKEN_TYPE_ANNOTATION;
+        }
         else if (skipNewLine(lexer))
         {
             /* allow line continuation */
-			if (isOperator(lexer->cur_token))
+            if (isOperator(lexer->cur_token))
             {
                 return lexer->cur_token;
             }
@@ -768,35 +769,35 @@ static int advanceToken (lexerState *lexer, bool skip_whitespace)
         else if (lexer->cur_c == ';')
         {
             advanceChar(lexer);
-			return lexer->cur_token = TOKEN_SEMICOLON;
+            return lexer->cur_token = TOKEN_SEMICOLON;
         }
-		else
-		{
-			int c = lexer->cur_c;
-			advanceChar(lexer);
-			return lexer->cur_token = c;
-		}
-	}
-	return lexer->cur_token = TOKEN_EOF;
+        else
+        {
+            int c = lexer->cur_c;
+            advanceChar(lexer);
+            return lexer->cur_token = c;
+        }
+    }
+    return lexer->cur_token = TOKEN_EOF;
 }
 
 static void initLexer (lexerState *lexer)
 {
-	advanceNChar(lexer, 2);
-	lexer->token_str = vStringNew();
+    advanceNChar(lexer, 2);
+    lexer->token_str = vStringNew();
     lexer->first_token = true;
 
-	if (lexer->cur_c == '#' && lexer->next_c == '!')
+    if (lexer->cur_c == '#' && lexer->next_c == '!')
     {
-		skipComment(lexer);
+        skipComment(lexer);
     }
-	advanceToken(lexer, true);
+    advanceToken(lexer, true);
 }
 
 static void deInitLexer (lexerState *lexer)
 {
-	vStringDelete(lexer->token_str);
-	lexer->token_str = NULL;
+    vStringDelete(lexer->token_str);
+    lexer->token_str = NULL;
 }
 
 #if 0
@@ -810,75 +811,75 @@ static void debugLexer (lexerState *lexer)
 
 static void addTag (vString* ident, const char* type, const char* arg_list, int kind, unsigned long line, MIOPos pos, vString *scope, int parent_kind)
 {
-	if (kind == K_NONE)
+    if (kind == K_NONE)
     {
-		return;
+        return;
     }
-	tagEntryInfo tag;
-	initTagEntry(&tag, ident->buffer, kind);
+    tagEntryInfo tag;
+    initTagEntry(&tag, ident->buffer, kind);
 
-	tag.lineNumber = line;
-	tag.filePosition = pos;
-	tag.sourceFileName = getInputFileName();
+    tag.lineNumber = line;
+    tag.filePosition = pos;
+    tag.sourceFileName = getInputFileName();
 
-	tag.extensionFields.signature = arg_list;
-	/* tag.extensionFields.varType = type; */  /* Needs a workaround */
-	if (parent_kind != K_NONE)
-	{
-		tag.extensionFields.scopeKindIndex = parent_kind;
-		tag.extensionFields.scopeName = scope->buffer;
-	}
-	makeTagEntry(&tag);
+    tag.extensionFields.signature = arg_list;
+    /* tag.extensionFields.varType = type; */  /* Needs a workaround */
+    if (parent_kind != K_NONE)
+    {
+        tag.extensionFields.scopeKindIndex = parent_kind;
+        tag.extensionFields.scopeName = scope->buffer;
+    }
+    makeTagEntry(&tag);
 }
 
 /* Skip tokens until one of the goal tokens is hit. Escapes when level = 0 if there are no goal tokens.
  * Keeps track of balanced ()'s, []'s, and {}'s and ignores the goal tokens within those pairings */
 static void skipUntil (lexerState *lexer, int goal_tokens[], int num_goal_tokens)
 {
-	int block_level = 0;
-    
-	while (lexer->cur_token != TOKEN_EOF)
-	{
+    int block_level = 0;
+
+    while (lexer->cur_token != TOKEN_EOF)
+    {
         /* check if the keyword is reached, only if outside a block */
-		if (block_level == 0)
-		{
-			int ii = 0;
-			for(ii = 0; ii < num_goal_tokens; ii++)
-			{
-				if (lexer->cur_token == goal_tokens[ii])
-				{
-					break;
-				}
-			}
-			if (ii < num_goal_tokens)
+        if (block_level == 0)
+        {
+            int ii = 0;
+            for(ii = 0; ii < num_goal_tokens; ii++)
+            {
+                if (lexer->cur_token == goal_tokens[ii])
+                {
+                    break;
+                }
+            }
+            if (ii < num_goal_tokens)
             {
                 /* parse the next token */
                 advanceToken(lexer, true);
-				break;
+                break;
             }
-		}
+        }
 
         /* take into account nested blocks */
-		switch (lexer->cur_token)
-		{
-			case TOKEN_OPEN_BLOCK:
-				block_level++;
-				break;
-			case TOKEN_CLOSE_BLOCK:
-				block_level--;
-				break;
-			default:
-				break;
-		}
-
-		/* Has to be after the token switch to catch the case when we start with the initial level token */
-		if (num_goal_tokens == 0 && block_level == 0)
+        switch (lexer->cur_token)
         {
-			break;
+            case TOKEN_OPEN_BLOCK:
+                block_level++;
+                break;
+            case TOKEN_CLOSE_BLOCK:
+                block_level--;
+                break;
+            default:
+                break;
+        }
+
+        /* Has to be after the token switch to catch the case when we start with the initial level token */
+        if (num_goal_tokens == 0 && block_level == 0)
+        {
+            break;
         }
 
         advanceToken(lexer, true);
-	}
+    }
 }
 
 /* Skip until the end of the block */
@@ -915,12 +916,12 @@ static void skipBody (lexerState *lexer)
 static void parseShortFunction (lexerState *lexer, vString *scope, int parent_kind)
 {
     /* assume the current char is just after identifier */
-	vString *name;
-	vString *arg_list;
-	unsigned long line;
-	MIOPos pos;
-    
-    /* should be an open parenthesis after identifier 
+    vString *name;
+    vString *arg_list;
+    unsigned long line;
+    MIOPos pos;
+
+    /* should be an open parenthesis after identifier
      * with potentially parametric type */
     skipWhitespace(lexer, false);
     if (lexer->cur_c == '{')
@@ -928,12 +929,12 @@ static void parseShortFunction (lexerState *lexer, vString *scope, int parent_ki
         scanCurlyBlock(lexer);
         skipWhitespace(lexer, false);
     }
-    
+
     if (lexer->cur_c != '(')
     {
         return;
     }
-    
+
     name = vStringNewCopy(lexer->token_str);
     line = lexer->line;
     pos = lexer->pos;
@@ -941,7 +942,7 @@ static void parseShortFunction (lexerState *lexer, vString *scope, int parent_ki
     /* scan argument list */
     advanceToken(lexer, true);
     arg_list = vStringNewCopy(lexer->token_str);
-    
+
     /* scan potential type casting */
     advanceToken(lexer, true);
     if (lexer->cur_token == TOKEN_TYPE_ANNOTATION)
@@ -956,7 +957,7 @@ static void parseShortFunction (lexerState *lexer, vString *scope, int parent_ki
         vStringCat(arg_list, lexer->token_str);
         advanceToken(lexer, true);
     }
-    
+
     /* scan equal sign */
     if (lexer->cur_token != '=' &&
         lexer->cur_c != '=' &&
@@ -969,11 +970,11 @@ static void parseShortFunction (lexerState *lexer, vString *scope, int parent_ki
 
     /* scan until end of function definition */
     skipBody(lexer);
-    
+
     /* Should end on a new line, parse next token */
     advanceToken(lexer, true);
     lexer->first_token = true;
-    
+
     vStringDelete(name);
 }
 
@@ -982,26 +983,26 @@ static void parseShortFunction (lexerState *lexer, vString *scope, int parent_ki
  * */
 static void parseFunction (lexerState *lexer, vString *scope, int parent_kind)
 {
-	vString *name;
-	vString *arg_list = vStringNew();
-	unsigned long line;
-	MIOPos pos;
+    vString *name;
+    vString *arg_list = vStringNew();
+    unsigned long line;
+    MIOPos pos;
 
-	advanceToken(lexer, true);
-	if (lexer->cur_token != TOKEN_IDENTIFIER)
+    advanceToken(lexer, true);
+    if (lexer->cur_token != TOKEN_IDENTIFIER)
     {
-		return;
+        return;
     }
 
-	name = vStringNewCopy(lexer->token_str);
-	line = lexer->line;
-	pos = lexer->pos;
+    name = vStringNewCopy(lexer->token_str);
+    line = lexer->line;
+    pos = lexer->pos;
 
-	advanceToken(lexer, true);
+    advanceToken(lexer, true);
     if (lexer->cur_token == TOKEN_PAREN_BLOCK)
-	{
+    {
         vStringCopy(arg_list, lexer->token_str);
-        
+
         /* scan potential type casting */
         advanceToken(lexer, true);
         if (lexer->cur_token == TOKEN_TYPE_ANNOTATION)
@@ -1016,19 +1017,19 @@ static void parseFunction (lexerState *lexer, vString *scope, int parent_kind)
             vStringCat(arg_list, lexer->token_str);
             advanceToken(lexer, true);
         }
-        
-		addTag(name, NULL, arg_list->buffer, K_FUNCTION, line, pos, scope, parent_kind);
-		//addToScope(scope, name);
-		//parseExpr(lexer, true, K_FUNCTION, scope);
-	}
+
+        addTag(name, NULL, arg_list->buffer, K_FUNCTION, line, pos, scope, parent_kind);
+        //addToScope(scope, name);
+        //parseExpr(lexer, true, K_FUNCTION, scope);
+    }
     else if (lexer->cur_token == TOKEN_CLOSE_BLOCK)
     {
         /* Function without method */
         addTag(name, NULL, NULL, K_FUNCTION, line, pos, scope, parent_kind);
     }
-    
+
     skipUntilEnd(lexer);
-	vStringDelete(name);
+    vStringDelete(name);
 }
 
 /* Macro format:
@@ -1036,28 +1037,28 @@ static void parseFunction (lexerState *lexer, vString *scope, int parent_kind)
  */
 static void parseMacro (lexerState *lexer, vString *scope, int parent_kind)
 {
-	vString *name;
-	unsigned long line;
-	MIOPos pos;
+    vString *name;
+    unsigned long line;
+    MIOPos pos;
 
-	advanceToken(lexer, true);
-	if (lexer->cur_token != TOKEN_IDENTIFIER)
+    advanceToken(lexer, true);
+    if (lexer->cur_token != TOKEN_IDENTIFIER)
     {
-		return;
+        return;
     }
 
-	name = vStringNewCopy(lexer->token_str);
-	line = lexer->line;
-	pos = lexer->pos;
+    name = vStringNewCopy(lexer->token_str);
+    line = lexer->line;
+    pos = lexer->pos;
 
-	advanceToken(lexer, true);
+    advanceToken(lexer, true);
     if (lexer->cur_token == TOKEN_PAREN_BLOCK)
-	{
-		addTag(name, NULL, lexer->token_str->buffer, K_MACRO, line, pos, scope, parent_kind);
-	}
+    {
+        addTag(name, NULL, lexer->token_str->buffer, K_MACRO, line, pos, scope, parent_kind);
+    }
 
     skipUntilEnd(lexer);
-	vStringDelete(name);
+    vStringDelete(name);
 }
 
 /* Const format:
@@ -1065,12 +1066,12 @@ static void parseMacro (lexerState *lexer, vString *scope, int parent_kind)
  */
 static void parseConst (lexerState *lexer, vString *scope, int parent_kind)
 {
-	vString *name;
-    
+    vString *name;
+
     advanceToken(lexer, true);
-	if (lexer->cur_token != TOKEN_IDENTIFIER)
+    if (lexer->cur_token != TOKEN_IDENTIFIER)
     {
-		return;
+        return;
     }
 
     name = vStringNewCopy(lexer->token_str);
@@ -1092,13 +1093,13 @@ static void parseConst (lexerState *lexer, vString *scope, int parent_kind)
  */
 static void parseType (lexerState *lexer, vString *scope, int parent_kind)
 {
-	advanceToken(lexer, true);
-	if (lexer->cur_token != TOKEN_IDENTIFIER)
+    advanceToken(lexer, true);
+    if (lexer->cur_token != TOKEN_IDENTIFIER)
     {
-		return;
+        return;
     }
 
-	addTag(lexer->token_str, NULL, NULL, K_TYPE, lexer->line, lexer->pos, scope, parent_kind);
+    addTag(lexer->token_str, NULL, NULL, K_TYPE, lexer->line, lexer->pos, scope, parent_kind);
 
     skipUntilEnd(lexer);
 }
@@ -1108,14 +1109,14 @@ static void parseType (lexerState *lexer, vString *scope, int parent_kind)
  */
 static void parseModule (lexerState *lexer, vString *scope, int parent_kind)
 {
-	advanceToken(lexer, true);
-	if (lexer->cur_token != TOKEN_IDENTIFIER)
+    advanceToken(lexer, true);
+    if (lexer->cur_token != TOKEN_IDENTIFIER)
     {
-		return;
+        return;
     }
 
-	addTag(lexer->token_str, NULL, NULL, K_MODULE, lexer->line, lexer->pos, scope, parent_kind);
-	//addToScope(scope, lexer->token_str);
+    addTag(lexer->token_str, NULL, NULL, K_MODULE, lexer->line, lexer->pos, scope, parent_kind);
+    //addToScope(scope, lexer->token_str);
     //advanceToken(lexer, true);
     //parseExpr(lexer, true, K_MODULE, scope);
 }
@@ -1126,10 +1127,10 @@ static void parseModule (lexerState *lexer, vString *scope, int parent_kind)
 static void parseImport (lexerState *lexer, vString *scope, int parent_kind)
 {
     vString *name = vStringNew();
-    
+
     /* capture the imported name */
-	advanceToken(lexer, true);
-	if (lexer->cur_c == ':')
+    advanceToken(lexer, true);
+    if (lexer->cur_c == ':')
     {
         advanceAndStoreChar(lexer);
         vStringCopy(name, lexer->token_str);
@@ -1162,23 +1163,23 @@ static void parseImport (lexerState *lexer, vString *scope, int parent_kind)
  * */
 static void parseStruct (lexerState *lexer, vString *scope, int parent_kind)
 {
-	vString *name;
-	vString *field = vStringNew();
-	unsigned long line;
-	MIOPos pos;
+    vString *name;
+    vString *field = vStringNew();
+    unsigned long line;
+    MIOPos pos;
 
-	advanceToken(lexer, true);
-	if (lexer->cur_token != TOKEN_IDENTIFIER)
+    advanceToken(lexer, true);
+    if (lexer->cur_token != TOKEN_IDENTIFIER)
     {
-		return;
+        return;
     }
 
-	name = vStringNewCopy(lexer->token_str);
-	line = lexer->line;
-	pos = lexer->pos;
+    name = vStringNewCopy(lexer->token_str);
+    line = lexer->line;
+    pos = lexer->pos;
 
     /* scan parametrization */
- 	advanceToken(lexer, true);
+    advanceToken(lexer, true);
     if (lexer->cur_token == TOKEN_CURLY_BLOCK)
     {
         addTag(name, NULL, lexer->token_str->buffer, K_STRUCT, line, pos, scope, parent_kind);
@@ -1188,7 +1189,7 @@ static void parseStruct (lexerState *lexer, vString *scope, int parent_kind)
     {
         addTag(name, NULL, NULL, K_STRUCT, line, pos, scope, parent_kind);
     }
-	addToScope(scope, name);
+    addToScope(scope, name);
 
     /* skip inheritance */
     if (lexer->cur_token == TOKEN_TYPE_ANNOTATION)
@@ -1196,7 +1197,7 @@ static void parseStruct (lexerState *lexer, vString *scope, int parent_kind)
         advanceToken(lexer, true);
     }
 
-	/* Parse fields and inner constructors */
+    /* Parse fields and inner constructors */
     while (lexer->cur_token != TOKEN_EOF && lexer->cur_token != TOKEN_CLOSE_BLOCK)
     {
         if (lexer->cur_token == TOKEN_IDENTIFIER)
@@ -1207,7 +1208,7 @@ static void parseStruct (lexerState *lexer, vString *scope, int parent_kind)
                 parseShortFunction(lexer, scope, K_STRUCT);
                 continue;
             }
-            
+
             vStringCopy(field, lexer->token_str);
 
             /* parse type annotation */
@@ -1238,11 +1239,11 @@ static void parseStruct (lexerState *lexer, vString *scope, int parent_kind)
 
 static void parseExpr (lexerState *lexer, bool delim, int kind, vString *scope)
 {
-	int level = 1;
+    int level = 1;
     size_t old_scope_len;
 
-	while (lexer->cur_token != TOKEN_EOF)
-	{
+    while (lexer->cur_token != TOKEN_EOF)
+    {
         old_scope_len = vStringLength(scope);
         /* Advance token and update if this is a new line */
         while (lexer->cur_token == TOKEN_NEWLINE ||
@@ -1250,7 +1251,7 @@ static void parseExpr (lexerState *lexer, bool delim, int kind, vString *scope)
         {
             advanceToken(lexer, true);
         }
-    
+
         /* Make sure every case advances the token
          * otherwise we can be stuck in infinite loop */
         switch (lexer->cur_token)
@@ -1259,10 +1260,10 @@ static void parseExpr (lexerState *lexer, bool delim, int kind, vString *scope)
                 parseConst(lexer, scope, kind);
                 break;
             case TOKEN_FUNCTION:
-				parseFunction(lexer, scope, kind);
+                parseFunction(lexer, scope, kind);
                 break;
             case TOKEN_MACRO:
-				parseMacro(lexer, scope, kind);
+                parseMacro(lexer, scope, kind);
                 break;
             case TOKEN_MODULE:
                 parseModule(lexer, scope, kind);
@@ -1300,23 +1301,23 @@ static void parseExpr (lexerState *lexer, bool delim, int kind, vString *scope)
                 break;
         }
         resetScope(scope, old_scope_len);
-		if (delim && level <= 0)
+        if (delim && level <= 0)
         {
-			break;
+            break;
         }
-	}
+    }
 }
 
 static void findJuliaTags (void)
 {
-	lexerState lexer;
-	vString* scope = vStringNew();
-	initLexer(&lexer);
+    lexerState lexer;
+    vString* scope = vStringNew();
+    initLexer(&lexer);
 
-	parseExpr(&lexer, false, K_NONE, scope);
-	vStringDelete(scope);
+    parseExpr(&lexer, false, K_NONE, scope);
+    vStringDelete(scope);
 
-	deInitLexer(&lexer);
+    deInitLexer(&lexer);
 }
 
 extern parserDefinition* JuliaParser (void)
