@@ -66,6 +66,7 @@ typedef enum {
     TOKEN_TYPE_WHERE,
     TOKEN_CONST,
     TOKEN_STRING,         /*  = 10 */
+    TOKEN_COMMAND,
     TOKEN_MACROCALL,
     TOKEN_IDENTIFIER,
     TOKEN_MODULE,
@@ -74,8 +75,8 @@ typedef enum {
     TOKEN_STRUCT,
     TOKEN_ENUM,
     TOKEN_TYPE,
-    TOKEN_IMPORT,
-    TOKEN_EXPORT,         /*  = 20 */
+    TOKEN_IMPORT,         /*  = 20 */
+    TOKEN_EXPORT,
     TOKEN_NEWLINE,
     TOKEN_SEMICOLON,
     TOKEN_EOF,
@@ -427,6 +428,67 @@ static bool scanCharacterOrTranspose (lexerState *lexer)
     return true;
 }
 
+/* Scan commands surrounded by backticks,
+ * possibly triple backticks */
+static bool scanCommand (lexerState *lexer)
+{
+    /* assume the first character is a backtick */
+    bool istriple = false;
+
+    /* Pass the first backtick */
+    advanceAndStoreChar(lexer);
+
+    /* Check for triple backtick */
+    if (lexer->cur_c == '`' && lexer->next_c == '`')
+    {
+        istriple = true;
+        advanceAndStoreChar(lexer);
+        advanceAndStoreChar(lexer);
+
+        /* Cancel up to 2 backtick after opening the triple */
+        if (lexer->cur_c == '`')
+        {
+            advanceAndStoreChar(lexer);
+            if (lexer->cur_c == '`')
+            {
+                advanceAndStoreChar(lexer);
+            }
+        }
+    }
+
+    while (lexer->cur_c != EOF && lexer->cur_c != '`')
+    {
+        /* Check for interpolation before checking for end of string */
+        if (lexer->cur_c == '$' && lexer->next_c == '(')
+        {
+            advanceAndStoreChar(lexer);
+            scanParenBlock(lexer);
+            /* continue, in order to avoid advancing another character.
+             * Correct problem with backtick just after closing parenthesis */
+            continue;
+        }
+
+        if (lexer->cur_c == '\\' &&
+            (lexer->next_c == '`' || lexer->next_c == '\\'))
+        {
+            advanceAndStoreChar(lexer);
+        }
+        advanceAndStoreChar(lexer);
+
+        /* Cancel up to 2 backticks if triple */
+        if (istriple && lexer->cur_c == '`')
+        {
+            advanceAndStoreChar(lexer);
+            if (lexer->cur_c == '`')
+            {
+                advanceAndStoreChar(lexer);
+            }
+        }
+    }
+    /* Pass the last backtick */
+    advanceAndStoreChar(lexer);
+}
+
 /* Parse a block with opening and closing character */
 static void scanBlock (lexerState *lexer, int open, int close, bool convert_newline)
 {
@@ -484,7 +546,7 @@ static void scanBlock (lexerState *lexer, int open, int close, bool convert_newl
 /* Parse a block inside parenthesis, for example a function argument list */
 static void scanParenBlock (lexerState *lexer)
 {
-    return scanBlock(lexer, '(', ')', true);
+    scanBlock(lexer, '(', ')', true);
 }
 
 /* Indexing block with bracket.
@@ -492,14 +554,14 @@ static void scanParenBlock (lexerState *lexer)
  * end, begin, for and if */
 static void scanIndexBlock (lexerState *lexer)
 {
-    return scanBlock(lexer, '[', ']', false);
+    scanBlock(lexer, '[', ']', false);
 
 }
 
 /* Parse a block inside curly brackets, for type parametrization */
 static void scanCurlyBlock (lexerState *lexer)
 {
-    return scanBlock(lexer, '{', '}', true);
+    scanBlock(lexer, '{', '}', true);
 }
 
 /* Scan type annotation like
@@ -719,6 +781,12 @@ static int advanceToken (lexerState *lexer, bool skip_whitespace)
                 return lexer->cur_token = '\'';
             }
         }
+        else if (lexer->cur_c == '`')
+        {
+            vStringClear(lexer->token_str);
+            scanCommand(lexer);
+            return lexer->cur_token = TOKEN_COMMAND;
+        }
         else if (isIdentifierFirstCharacter(lexer->cur_c))
         {
             return parseIdentifier(lexer);
@@ -887,7 +955,7 @@ static void skipUntilEnd (lexerState *lexer)
 {
     int goal_tokens[] = { TOKEN_CLOSE_BLOCK };
 
-    return skipUntil(lexer, goal_tokens, 1);
+    skipUntil(lexer, goal_tokens, 1);
 }
 
 /* Skip a function body after assignment operator '='

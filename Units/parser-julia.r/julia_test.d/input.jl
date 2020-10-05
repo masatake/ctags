@@ -38,7 +38,8 @@ mutable struct STest <: ATest; a::Int end
 
 struct Test1 <: ATest
     a::Int
-    
+    α::Real
+
     Test1() = new(0)
     Test1(a) = new(1)
     Test1(a, b) = begin new(2) end
