@@ -5,7 +5,7 @@
 *   GNU General Public License version 2 or (at your option) any later version.
 *
 *   This module contains functions for generating tags for Julia files.
-* 
+*
 *   Documented 'kinds':
 *       https://docs.julialang.org/en/v1/manual/documentation/#Syntax-Guide
 *   Language parser in Scheme:
@@ -1238,7 +1238,7 @@ static void parseImport (lexerState *lexer, vString *scope, int parent_kind)
             advanceToken(lexer, true);
         }
     }
-    
+
     vStringDelete(name);
 }
 
