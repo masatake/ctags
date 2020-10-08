@@ -84,9 +84,41 @@ typedef enum {
     TOKEN_EXPORT,
     TOKEN_NEWLINE,
     TOKEN_SEMICOLON,
+    TOKEN_COMPOSER_KWD,   /* KEYWORD only */
     TOKEN_EOF,
     TOKEN_COUNT
 } tokenType;
+
+static const keywordTable JuliaKeywordTable [] = {
+    /* TODO: Sort by keys. */
+    { "mutable",   TOKEN_COMPOSER_KWD },
+    { "primitive", TOKEN_COMPOSER_KWD },
+    { "abstract",  TOKEN_COMPOSER_KWD },
+
+    { "if",        TOKEN_OPEN_BLOCK   },
+    { "for",       TOKEN_OPEN_BLOCK   },
+    { "while",     TOKEN_OPEN_BLOCK   },
+    { "try",       TOKEN_OPEN_BLOCK   },
+    { "do",        TOKEN_OPEN_BLOCK   },
+    { "begin",     TOKEN_OPEN_BLOCK   },
+    { "let",       TOKEN_OPEN_BLOCK   },
+    { "quote",     TOKEN_OPEN_BLOCK   },
+
+    { "module",    TOKEN_MODULE       },
+    { "baremodule",TOKEN_MODULE       },
+
+    { "using",     TOKEN_IMPORT       },
+    { "import",    TOKEN_IMPORT       },
+
+    { "export",    TOKEN_EXPORT       },
+    { "const",     TOKEN_CONST        },
+    { "macro",     TOKEN_MACRO        },
+    { "function",  TOKEN_FUNCTION     },
+    { "struct",    TOKEN_STRUCT       },
+    { "type",      TOKEN_TYPE         },
+    { "where",     TOKEN_TYPE_WHERE   },
+    { "end",       TOKEN_CLOSE_BLOCK  },
+};
 
 typedef struct {
     /* Characters */
@@ -649,72 +681,35 @@ static void scanTypeWhere (lexerState *lexer)
 
 static int parseIdentifier (lexerState *lexer)
 {
+    langType julia = getInputLanguage ();
     scanIdentifier(lexer, true);
 
-
+    int k = lookupKeyword (vStringValue(lexer->token_str), julia);
     /* First part of a composed identifier */
-    if (strcmp(vStringValue(lexer->token_str), "mutable") == 0   ||
-        strcmp(vStringValue(lexer->token_str), "primitive") == 0 ||
-        strcmp(vStringValue(lexer->token_str), "abstract") == 0  )
+    if (k == TOKEN_COMPOSER_KWD)
     {
         skipWhitespace(lexer, false);
         scanIdentifier(lexer, true);
+        k = lookupKeyword (vStringValue(lexer->token_str), julia);
     }
 
-
-    if (strcmp(vStringValue(lexer->token_str), "if") == 0    ||
-        strcmp(vStringValue(lexer->token_str), "for") == 0   ||
-        strcmp(vStringValue(lexer->token_str), "while") == 0 ||
-        strcmp(vStringValue(lexer->token_str), "try") == 0   ||
-        strcmp(vStringValue(lexer->token_str), "do") == 0    ||
-        strcmp(vStringValue(lexer->token_str), "begin") == 0 ||
-        strcmp(vStringValue(lexer->token_str), "let") == 0   ||
-        strcmp(vStringValue(lexer->token_str), "quote") == 0 )
+    if ((k == TOKEN_OPEN_BLOCK)
+        || (k == TOKEN_MODULE)
+        || (k == TOKEN_IMPORT)
+        || (k == TOKEN_EXPORT)
+        || (k == TOKEN_CONST)
+        || (k == TOKEN_MACRO)
+        || (k == TOKEN_FUNCTION)
+        || (k == TOKEN_STRUCT)
+        || (k == TOKEN_TYPE)
+        || (k == TOKEN_TYPE_WHERE)
+        || (k == TOKEN_CLOSE_BLOCK))
     {
-        return lexer->cur_token = TOKEN_OPEN_BLOCK;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "module") == 0 ||
-             strcmp(vStringValue(lexer->token_str), "baremodule") == 0)
-    {
-        return lexer->cur_token = TOKEN_MODULE;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "using") == 0 ||
-             strcmp(vStringValue(lexer->token_str), "import") == 0)
-    {
-        return lexer->cur_token = TOKEN_IMPORT;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "export") == 0)
-    {
-        return lexer->cur_token = TOKEN_EXPORT;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "const") == 0)
-    {
-        return lexer->cur_token = TOKEN_CONST;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "macro") == 0)
-    {
-        return lexer->cur_token = TOKEN_MACRO;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "function") == 0)
-    {
-        return lexer->cur_token = TOKEN_FUNCTION;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "struct") == 0)
-    {
-        return lexer->cur_token = TOKEN_STRUCT;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "type") == 0)
-    {
-        return lexer->cur_token = TOKEN_TYPE;
-    }
-    else if (strcmp(vStringValue(lexer->token_str), "where") == 0)
-    {
-        scanTypeWhere(lexer);
-        return lexer->cur_token = TOKEN_TYPE_WHERE;
-    }
-    else if ( strcmp(vStringValue(lexer->token_str), "end") == 0 )
-    {
-        return lexer->cur_token = TOKEN_CLOSE_BLOCK;
+        if (k == TOKEN_TYPE_WHERE)
+        {
+            scanTypeWhere(lexer);
+        }
+        return lexer->cur_token = k;
     }
     return lexer->cur_token = TOKEN_IDENTIFIER;
 }
@@ -1416,5 +1411,7 @@ extern parserDefinition* JuliaParser (void)
     def->kindCount  = ARRAY_SIZE (JuliaKinds);
     def->extensions = extensions;
     def->parser     = findJuliaTags;
+    def->keywordTable = JuliaKeywordTable;
+    def->keywordCount = ARRAY_SIZE (JuliaKeywordTable);
     return def;
 }
