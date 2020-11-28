@@ -38,6 +38,7 @@
 #include "interactive_p.h"
 #include "writer_p.h"
 #include "trace.h"
+#include "hint_p.h"
 
 #ifdef HAVE_JANSSON
 #include <jansson.h>
@@ -459,6 +460,8 @@ static optionDescription ExperimentalLongOptionDescription [] = {
  {1,"  --_force-quit=[num]"},
  {1,"       Quit when the option is processed. Useful to debug the chain"},
  {1,"       of loading option files."},
+ {1," --_hint-file=HINT.tags"},
+ {1,"       Use the existing tags file as hints for parsing and tagging"},
 #ifdef HAVE_JANSSON
  {0,"  --_interactive"
 #ifdef HAVE_SECCOMP
@@ -2847,6 +2850,7 @@ static parametricOption ParametricOptions [] = {
 #ifdef HAVE_JANSSON
 	{ "_interactive",           processInteractiveOption,       true,   STAGE_ANY },
 #endif
+	{ "_hint-file",              processHintFileOption,          true,   STAGE_ANY },
 	{ "_list-kinddef-flags",     processListKinddefFlagsOptions, true,   STAGE_ANY },
 	{ "_list-langdef-flags",     processListLangdefFlagsOptions, true,   STAGE_ANY },
 	{ "_list-mtable-regex-flags", processListMultitableRegexFlagsOptions, true, STAGE_ANY },
