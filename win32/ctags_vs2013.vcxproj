@@ -62,7 +62,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../main;../gnu_regex;../parsers;../parsers/cxx;../fnmatch;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../main;../gnu_regex;../parsers;../parsers/cxx;../fnmatch;../libreadtags;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;;HAVE_REGCOMP;HAVE_STDBOOL_H;__USE_GNU;strcasecmp=stricmp;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -81,7 +81,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../main;../gnu_regex;../parsers;../parsers/cxx;../fnmatch;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../main;../gnu_regex;../parsers;../parsers/cxx;../fnmatch;../libreadtags;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;HAVE_REGCOMP;HAVE_STDBOOL_H;__USE_GNU;strcasecmp=stricmp;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -273,6 +273,7 @@
     <ClCompile Include="..\parsers\windres.c" />
     <ClCompile Include="..\parsers\yacc.c" />
     <ClCompile Include="..\parsers\yumrepo.c" />
+    <ClCompile Include="..\libreadtags\readtags.c" />
     <ClCompile Include="mkstemp\mkstemp.c" />
   </ItemGroup>
   <ItemGroup>
@@ -360,6 +361,7 @@
     <ClInclude Include="..\parsers\perl.h" />
     <ClInclude Include="..\parsers\tcl.h" />
     <ClInclude Include="..\parsers\tex.h" />
+    <ClInclude Include="..\libreadtags\readtags.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
