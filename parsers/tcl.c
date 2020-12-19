@@ -96,8 +96,8 @@ typedef struct sTclToken {
 #define TCL_PSTATE(TOKEN) (TCL(TOKEN)->pstate)
 
 static struct tokenTypePair typePairs [] = {
-	{ '{', '}' },
-	{ '[', ']' },
+	{ '{', '}', NULL },
+	{ '[', ']', NULL },
 };
 
 
