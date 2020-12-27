@@ -343,6 +343,8 @@ def prepare_bundles(frm, to, obundles):
             continue
         elif fn == 'args.ctags':
             continue
+        elif fn == 'hint.tags':
+            continue
         else:
             dist = to + '/' + fn
             if os.path.isdir(src):
@@ -434,6 +436,7 @@ def run_tcase(finput, t, name, tclass, category, build_t, extra_inputs):
     ffilter = t + '/filter'
 
     fexpected = t + '/expected.tags'
+    fhint = t + '/hint.tags'
     output_type = 'ctags'
     output_label = ''
     output_tflag = []
@@ -496,6 +499,8 @@ def run_tcase(finput, t, name, tclass, category, build_t, extra_inputs):
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if ret.returncode != 0:
             broken_args_ctags = True
+    if os.path.isfile(fhint):
+        cmdline += ['--_hint-file=' + fhint]
 
     #
     # make a backup (basedcmdline) of cmdline.  basedcmdline is used
