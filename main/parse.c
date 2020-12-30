@@ -5115,6 +5115,12 @@ extern void parserPreloadMetaHint (ptagType ptag, langType lang,
 													   hint);
 }
 
+extern void parserPreloadHint (langType lang, hintEntry *hint)
+{
+	if (LanguageTable [lang].def->preloadHint)
+		LanguageTable [lang].def->preloadHint (lang, hint);
+}
+
 /*
  * A dummy parser for printing pseudo tags in xref output
  */
