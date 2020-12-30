@@ -40,6 +40,7 @@ typedef struct sFieldObject {
 	const char* nameWithPrefix;
 	langType language;
 	fieldType sibling;
+	bool availableInHint;
 } fieldObject;
 
 static const char *renderFieldName (const tagEntryInfo *const tag, const char *value, vString* b);
@@ -265,6 +266,7 @@ extern void initFieldObjects (void)
 		fobj->nameWithPrefix = fobj->def->name;
 		fobj->language = LANG_IGNORE;
 		fobj->sibling  = FIELD_UNKNOWN;
+		fobj->availableInHint = false;
 	}
 	fieldObjectUsed += ARRAY_SIZE (fieldDefinitionsFixed);
 
@@ -276,6 +278,7 @@ extern void initFieldObjects (void)
 		fobj->nameWithPrefix = fobj->def->name;
 		fobj->language = LANG_IGNORE;
 		fobj->sibling  = FIELD_UNKNOWN;
+		fobj->availableInHint = false;
 	}
 	fieldObjectUsed += ARRAY_SIZE (fieldDefinitionsExuberant);
 
@@ -300,6 +303,7 @@ extern void initFieldObjects (void)
 			fobj->nameWithPrefix = NULL;
 		fobj->language = LANG_IGNORE;
 		fobj->sibling  = FIELD_UNKNOWN;
+		fobj->availableInHint = false;
 	}
 	fieldObjectUsed += ARRAY_SIZE (fieldDefinitionsUniversal);
 
@@ -973,6 +977,11 @@ extern bool isFieldEnabled (fieldType type)
 	return getFieldObject(type)->def->enabled;
 }
 
+extern bool isFieldAvailableInHint (fieldType type)
+{
+	return getFieldObject(type)->availableInHint;
+}
+
 extern bool enableField (fieldType type, bool state, bool warnIfFixedField)
 {
 	fieldDefinition *def = getFieldObject(type)->def;
@@ -1009,6 +1018,11 @@ extern bool enableField (fieldType type, bool state, bool warnIfFixedField)
 				 (state? "yes": "no"));
 	}
 	return old;
+}
+
+extern void makeFieldAvailableInHint (fieldType type)
+{
+	getFieldObject(type)->availableInHint = true;
 }
 
 extern bool isCommonField (fieldType type)
@@ -1118,6 +1132,9 @@ extern int defineField (fieldDefinition *def, langType language)
 	fobj->sibling  = FIELD_UNKNOWN;
 
 	updateSiblingField (def->ftype, def->name);
+
+	fobj->availableInHint = false;
+
 	return def->ftype;
 }
 
