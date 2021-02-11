@@ -168,6 +168,7 @@ typedef enum {
 	JSTAG_GENERATOR,
 	JSTAG_GETTER,
 	JSTAG_SETTER,
+	JSTAG_FIELD,
 	JSTAG_COUNT
 } jsKind;
 
@@ -181,6 +182,7 @@ static kindDefinition JsKinds [] = {
 	{ true,  'g', "generator",	  "generators"		   },
 	{ true,  'G', "getter",		  "getters"			   },
 	{ true,  'S', "setter",		  "setters"			   },
+	{ true,  'M', "field",		  "fields"			   },
 };
 
 static const keywordTable JsKeywordTable [] = {
@@ -1628,12 +1630,16 @@ static bool parseMethods (tokenInfo *const token, const tokenInfo *const class,
      *     *[generator]() {}
 	 */
 
+	bool dont_read = false;
 	do
 	{
 		bool is_setter = false;
 		bool is_getter = false;
 
-		readToken (token);
+		if (!dont_read)
+			readToken (token);
+		dont_read = false;
+
 		if (isType (token, TOKEN_CLOSE_CURLY))
 		{
 			goto cleanUp;
@@ -1799,6 +1805,23 @@ static bool parseMethods (tokenInfo *const token, const tokenInfo *const class,
 						else
 							makeJsTag (name, JSTAG_PROPERTY, NULL, NULL);
 				}
+			}
+			else if (isType (token, TOKEN_EQUAL_SIGN)
+					 || isType (token, TOKEN_SEMICOLON)
+					 || isType (token, TOKEN_CLOSE_CURLY)
+					 || (isType (token, TOKEN_IDENTIFIER)
+						 && name->lineNumber != token->lineNumber))
+			{
+				makeJsTag (name, JSTAG_FIELD, NULL, NULL);
+
+				if (isType (token, TOKEN_EQUAL_SIGN))
+				{
+					readToken (token);
+					parseLine (token, true);
+				}
+				else if (isType (token, TOKEN_IDENTIFIER)
+						 || isType (token, TOKEN_CLOSE_CURLY))
+					dont_read = true;
 			}
 		}
 	} while ( isType(token, TOKEN_COMMA) ||
