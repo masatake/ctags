@@ -1,0 +1,6 @@
+field n is available.
+field k is available.
+field s is available.
+field S is available.
+field a is available.
+field f is available.
