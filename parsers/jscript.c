@@ -1628,6 +1628,12 @@ static bool parseMethods (tokenInfo *const token, const tokenInfo *const class,
      *     get [property]() {}
      *     set [property]() {}
      *     *[generator]() {}
+	 *
+	 * tc39/proposal-class-fields
+	 *     field0 = function(a,b) {}
+	 *     field1 = 1
+	 * The parser extracts field0 as a method because the left value
+	 * is a function (kind propagation), and field1 as a field.
 	 */
 
 	bool dont_read = false;
@@ -1715,7 +1721,8 @@ static bool parseMethods (tokenInfo *const token, const tokenInfo *const class,
 				vStringDelete (dprop);
 
 			is_shorthand = isType (token, TOKEN_OPEN_PAREN);
-			if ( isType (token, TOKEN_COLON) || is_shorthand )
+			bool can_be_field = isType (token, TOKEN_EQUAL_SIGN);
+			if ( isType (token, TOKEN_COLON) || can_be_field || is_shorthand )
 			{
 				if (! is_shorthand)
 				{
@@ -1805,26 +1812,17 @@ static bool parseMethods (tokenInfo *const token, const tokenInfo *const class,
 						else
 							makeJsTag (name, JSTAG_PROPERTY, NULL, NULL);
 				}
-			}
-			else if (isType (token, TOKEN_EQUAL_SIGN)
-					 || isType (token, TOKEN_SEMICOLON)
-					 || isType (token, TOKEN_CLOSE_CURLY)
-					 || (isType (token, TOKEN_IDENTIFIER)))
-			{
-				if (isType (token, TOKEN_EQUAL_SIGN))
-				{
-					readToken (token);
-					if (isKeyword (token, KEYWORD_function))
-						makeJsTag (name, JSTAG_FUNCTION, NULL, NULL);
-					else
-						makeJsTag (name, JSTAG_FIELD, NULL, NULL);
-					parseLine (token, true);
-				}
-				else
+				else if (can_be_field)
 				{
 					makeJsTag (name, JSTAG_FIELD, NULL, NULL);
-					dont_read = true;
+					parseLine (token, true);
 				}
+			}
+			else
+			{
+				makeJsTag (name, JSTAG_FIELD, NULL, NULL);
+				if (!isType (token, TOKEN_SEMICOLON))
+					dont_read = true;
 			}
 		}
 	} while ( isType(token, TOKEN_COMMA) ||
