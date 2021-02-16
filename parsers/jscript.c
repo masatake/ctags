@@ -1809,19 +1809,22 @@ static bool parseMethods (tokenInfo *const token, const tokenInfo *const class,
 			else if (isType (token, TOKEN_EQUAL_SIGN)
 					 || isType (token, TOKEN_SEMICOLON)
 					 || isType (token, TOKEN_CLOSE_CURLY)
-					 || (isType (token, TOKEN_IDENTIFIER)
-						 && name->lineNumber != token->lineNumber))
+					 || (isType (token, TOKEN_IDENTIFIER)))
 			{
-				makeJsTag (name, JSTAG_FIELD, NULL, NULL);
-
 				if (isType (token, TOKEN_EQUAL_SIGN))
 				{
 					readToken (token);
+					if (isKeyword (token, KEYWORD_function))
+						makeJsTag (name, JSTAG_FUNCTION, NULL, NULL);
+					else
+						makeJsTag (name, JSTAG_FIELD, NULL, NULL);
 					parseLine (token, true);
 				}
-				else if (isType (token, TOKEN_IDENTIFIER)
-						 || isType (token, TOKEN_CLOSE_CURLY))
+				else
+				{
+					makeJsTag (name, JSTAG_FIELD, NULL, NULL);
 					dont_read = true;
+				}
 			}
 		}
 	} while ( isType(token, TOKEN_COMMA) ||

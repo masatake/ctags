@@ -10,7 +10,7 @@ field7	input.js	/^    field7$/;"	M	class:Class0
 field8	input.js	/^    field8 = 1;$/;"	M	class:Class0
 field9	input.js	/^    field9 = "abc"$/;"	M	class:Class0
 field10	input.js	/^    field10 = {}$/;"	M	class:Class0
-field11	input.js	/^    field11 = function(x, y) {$/;"	M	class:Class0
+field11	input.js	/^    field11 = function(x, y) {$/;"	f	function:Class0
 fun1	input.js	/^	var fun1 = function(x) { return x + 1 }$/;"	f	function:Class0.AnonymousFunction391993410100
 AnonymousFunction391993410100	input.js	/^    field11 = function(x, y) {$/;"	f	function:Class0
 method1	input.js	/^    method1() {$/;"	m	class:Class0
