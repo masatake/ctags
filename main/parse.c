@@ -3785,6 +3785,11 @@ extern void notifyLanguageRegexInputEnd (langType language)
 	notifyRegexInputEnd((LanguageTable + language)->lregexControlBlock);
 }
 
+extern void notifyLanguageRegexMakeTagEntry (langType language, int corkIndex)
+{
+	notifyRegexMakeTagEntry((LanguageTable + language)->lregexControlBlock, corkIndex);
+}
+
 static unsigned int parserCorkFlags (parserDefinition *parser)
 {
 	subparser *tmp;
@@ -5094,6 +5099,11 @@ extern bool processPreludeOption (const char *const option, const char *const pa
 extern bool processSequelOption (const char *const option, const char *const parameter)
 {
 	return processHookOption (option, parameter, "_sequel-", SCRIPT_HOOK_SEQUEL);
+}
+
+extern bool processMakeTagEntryReflectionOption (const char *const option, const char *const parameter)
+{
+	return processHookOption (option, parameter, "_makeTagEntryReflection-", SCRIPT_HOOK_MAKE_TAG_ENTRY_REFLECTION);
 }
 
 extern bool processPretendOption (const char *const option, const char *const parameter)
