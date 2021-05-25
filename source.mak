@@ -106,6 +106,7 @@ LIB_SRCS =			\
 	main/keyword.c			\
 	main/kind.c			\
 	main/lregex.c			\
+	main/lregex-default.c		\
 	main/lxpath.c			\
 	main/main.c			\
 	main/mbcs.c			\

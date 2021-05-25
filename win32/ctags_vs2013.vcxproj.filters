@@ -102,6 +102,9 @@
     <ClCompile Include="..\main\lregex.c">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
+    <ClCompile Include="..\main\lregex-default.c">
+      <Filter>Source Files\Main</Filter>
+    </ClCompile>
     <ClCompile Include="..\main\lxpath.c">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
