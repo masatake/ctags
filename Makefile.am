@@ -84,6 +84,11 @@ LIB_SRCS += $(REGEX_SRCS)
 LIB_HEADS += $(REGEX_HEADS)
 endif
 
+if HAVE_PCRE2
+PARSER_SRCS += $(PCRE2_SRCS)
+PARSER_HEADS += $(PCRE2_HEADS)
+endif
+
 if HAVE_LIBXML
 PARSER_SRCS += $(XML_SRCS)
 PARSER_HEADS += $(XML_HEADS)
@@ -121,6 +126,7 @@ libctags_a_CFLAGS  += $(LIBXML_CFLAGS)
 libctags_a_CFLAGS  += $(JANSSON_CFLAGS)
 libctags_a_CFLAGS  += $(LIBYAML_CFLAGS)
 libctags_a_CFLAGS  += $(SECCOMP_CFLAGS)
+libctags_a_CFLAGS  += $(PCRE2_CFLAGS)
 
 nodist_libctags_a_SOURCES = $(REPOINFO_HEADS) $(PEG_SRCS) $(PEG_HEADS)
 BUILT_SOURCES = $(REPOINFO_HEADS)
@@ -183,6 +189,7 @@ ctags_LDADD += $(JANSSON_LIBS)
 ctags_LDADD += $(LIBYAML_LIBS)
 ctags_LDADD += $(SECCOMP_LIBS)
 ctags_LDADD += $(ICONV_LIBS)
+ctags_LDADD += $(PCRE2_LIBS)
 dist_ctags_SOURCES = $(CMDLINE_HEADS) $(CMDLINE_SRCS)
 
 if HOST_MINGW
@@ -205,6 +212,7 @@ mini_geany_LDADD += $(JANSSON_LIBS)
 mini_geany_LDADD += $(LIBYAML_LIBS)
 mini_geany_LDADD += $(SECCOMP_LIBS)
 mini_geany_LDADD += $(ICONV_LIBS)
+mini_geany_LDADD += $(PCRE2_LIBS)
 mini_geany_SOURCES = $(MINI_GEANY_HEADS) $(MINI_GEANY_SRCS)
 
 bin_PROGRAMS += optscript
@@ -217,6 +225,7 @@ optscript_LDADD += $(JANSSON_LIBS)
 optscript_LDADD += $(LIBYAML_LIBS)
 optscript_LDADD += $(SECCOMP_LIBS)
 optscript_LDADD += $(ICONV_LIBS)
+optscript_LDADD += $(PCRE2_LIBS)
 optscript_SOURCES = $(OPTSCRIPT_SRCS)
 
 if INSTALL_ETAGS

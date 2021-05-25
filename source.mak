@@ -337,6 +337,13 @@ YAML_SRCS = \
 	\
 	$(NULL)
 
+PCRE2_HEADS =
+PCRE2_SRCS = \
+	    main/lregex-pcre2.c \
+	    \
+	    \
+	    $(NULL)
+
 DEBUG_HEADS = main/debug.h
 DEBUG_SRCS = main/debug.c
 

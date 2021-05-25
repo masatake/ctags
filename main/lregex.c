@@ -1361,6 +1361,10 @@ static flagDefinition backendFlagDefs[] = {
 	  NULL, "interpreted as a Posix basic regular expression."},
 	{ 'e', "extend", extend_regex_flag_short, extend_regex_flag_long,
 	  NULL, "interpreted as a Posix extended regular expression (default)"},
+#ifdef HAVE_PCRE2
+	{ 'p', "pcre2",  pcre2_regex_flag_short, pcre2_regex_flag_long,
+	  NULL, "use pcre2 regex engine"},
+#endif
 };
 
 static void regex_flag_icase_short (char c CTAGS_ATTR_UNUSED, void* data)

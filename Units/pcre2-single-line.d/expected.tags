@@ -1,0 +1,2 @@
+capture_me_in_bar	input.foo	/^def |capture_me_in_bar|$/;"	d
+capture_me_in_slash	input.foo	/^def \/capture_me_in_slash\/$/;"	d

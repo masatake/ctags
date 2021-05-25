@@ -1,0 +1,5 @@
+--langdef=Foo
+--map-Foo=.foo
+--kinddef-Foo=d,def,definitions
+
+--regex-Foo=/def\s+(\W)(\w+)\1/\2/d/p

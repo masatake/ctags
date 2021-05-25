@@ -22,7 +22,6 @@
 /*
 *    FUNCTION DECLARATIONS
 */
-
 static int match (struct regexBackend *backend,
 				  void *code, const char *input, size_t size,
 				  regmatch_t pmatch[BACK_REFERENCE_COUNT]);
