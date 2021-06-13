@@ -1807,6 +1807,8 @@ static void initTagEntryFull (tagEntryInfo *const e, const char *const name,
 	if (roleBits)
 		markTagExtraBit (e, XTAG_REFERENCE_TAGS);
 
+	e->extensionFields.nth = NO_NTH_FIELD;
+
 	if (doesParserRunAsGuest ())
 		markTagExtraBit (e, XTAG_GUEST);
 	if (doesSubparserRun ())
