@@ -31,6 +31,12 @@
 #include "selectors.h"
 
 #define MAX_REPLAYS 3
+
+/* nArgs counts the number of arguments:
+
+   nArgs(a, b, c)
+   => _NARGS (a, b, c, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+   => 3 */
 #define _NARGS(_1, _2, _3, _4, _5, _6, _7, _8, _9, N, ...) N
 #define nArgs(...) _NARGS (__VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 #define newToken() (objPoolGet (TokenPool))
