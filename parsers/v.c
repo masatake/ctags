@@ -39,11 +39,14 @@
    => 3 */
 #define _NARGS(_1, _2, _3, _4, _5, _6, _7, _8, _9, N, ...) N
 #define nArgs(...) _NARGS (__VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+
 #define newToken() (objPoolGet (TokenPool))
 #define deleteToken(t) (objPoolPut (TokenPool, (t)))
-#define vStringAccumulate(a, s) \
+
+#define vStringAccumulate(a, s)											\
 	do{ if (a && s) { vStringCat (a, s); vStringClear (s); } }while(0)
-#define isToken(token, ...) \
+
+#define isToken(token, ...)												\
 	_isToken (token,  false, false, __LINE__, nArgs (__VA_ARGS__), __VA_ARGS__)
 #define expectToken(token, ...) \
 	_isToken (token,  true, false, __LINE__, nArgs (__VA_ARGS__), __VA_ARGS__)
@@ -51,6 +54,7 @@
 	_isToken (token, false, true, __LINE__, nArgs (__VA_ARGS__), __VA_ARGS__)
 #define expectKeyword(token, ...) \
 	_isToken (token, true, true, __LINE__, nArgs (__VA_ARGS__), __VA_ARGS__)
+
 #define isDigit(c) (c >= '0' && c <= '9')
 #define isHexDigit(c) (isDigit (c) || \
 					   (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
@@ -69,7 +73,9 @@
 				   KEYWORD_shared, KEYWORD_fn, KEYWORD_none))
 #define isClose(t) ( \
 		isToken (t, TOKEN_CLOSE_PAREN, TOKEN_CLOSE_SQUARE, TOKEN_CLOSE_CURLY))
+
 #define unreadToken(t) (unreadTokenFull (t, NULL))
+
 #define RED "\033[91m\033[1m"
 #define NORM "\033[0m\n"
 
