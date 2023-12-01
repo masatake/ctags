@@ -284,11 +284,13 @@ static char *const tokenNames[COUNT_TOKEN] = {
 
 typedef enum {
 	ROLE_IMPORTED_MODULE,
+	ROLE_FOREIGNLANG_MODULE,
 	COUNT_MODULE_ROLE
 } VModuleRole;
 
 static roleDefinition VModuleRoles [COUNT_MODULE_ROLE] = {
 	{ true, "imported", "imported module" },
+	{ true, "foreignlang", "representing a foreign language (i.e., C, JS...)" },
 };
 
 typedef enum {
@@ -298,15 +300,6 @@ typedef enum {
 
 static roleDefinition VUnknownRoles [COUNT_UNKNOWN_ROLE] = {
 	{ true, "imported", "imported symbol" },
-};
-
-typedef enum {
-	ROLE_EXTERN_SYMBOL,
-	COUNT_EXTERN_ROLE
-} VExternRole;
-
-static roleDefinition VExternRoles [COUNT_EXTERN_ROLE] = {
-	{ true, "extern", "external symbol" },
 };
 
 typedef enum {
@@ -327,7 +320,6 @@ typedef enum {
 	KIND_ALIAS,
 	KIND_INTERFACE,
 	KIND_UNION,
-	KIND_EXTERN,
 	KIND_UNKNOWN,
 	COUNT_KIND
 } kindType;
@@ -350,8 +342,6 @@ static kindDefinition VKinds[COUNT_KIND] = {
 	{true, 'a', "alias", "type aliases"},
 	{true, 'i', "interface", "interfaces"},
 	{true, 'u', "union", "union names"},
-	{false, 'x', "extern", "external symbols (i.e., C, JS...)",
-	 .referenceOnly = false, ATTACH_ROLES (VExternRoles)},
 	{true, 'Y', "unknown", "unknown (imported) variables, types and functions",
 	 .referenceOnly = false, ATTACH_ROLES (VUnknownRoles)},
 };
@@ -1124,8 +1114,8 @@ static int lookupQualifiedName (tokenInfo *const token, vString *name,
 				if (!strcmp (part, "C") || !strcmp (part, "JS"))
 				{
 					external = true;
-					scope = makeTagFull (token, part, KIND_EXTERN, CORK_NIL,
-										 ROLE_EXTERN_SYMBOL, NULL, NULL, NULL);
+					scope = makeTagFull (token, part, KIND_MODULE, CORK_NIL,
+										 ROLE_FOREIGNLANG_MODULE, NULL, NULL, NULL);
 				}
 			}
 			if (!external && ongoing)
