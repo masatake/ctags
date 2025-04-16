@@ -2689,11 +2689,19 @@ static void processSortOption (
 	if (isFalse (parameter))
 		Option.sorted = SO_UNSORTED;
 	else if (isTrue (parameter))
+	{
+		if (inSandbox ())
+			error (FATAL, "cannot sort in sandbox");
 		Option.sorted = SO_SORTED;
+	}
 	else if (strcasecmp (parameter, "f") == 0 ||
 			strcasecmp (parameter, "fold") == 0 ||
 			strcasecmp (parameter, "foldcase") == 0)
+	{
+		if (inSandbox ())
+			error (FATAL, "cannot sort in sandbox");
 		Option.sorted = SO_FOLDSORTED;
+	}
 	else
 		error (FATAL, "Invalid value for \"%s\" option", option);
 }
