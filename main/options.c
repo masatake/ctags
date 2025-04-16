@@ -1675,30 +1675,47 @@ static void processHelpFullOption (
 
 #ifdef HAVE_JANSSON
 static void processInteractiveOption (
-		const char *const option CTAGS_ATTR_UNUSED,
+		const char *const option,
 		const char *const parameter)
 {
+	void (* loop) (cookedArgs *args, void *user) = interactiveLoop;
 	static struct interactiveModeArgs args;
 
+	args.fname = NULL;
+	args.sandbox = false;
 
 	if (parameter && (strcmp (parameter, "sandbox") == 0))
-	{
 		Option.interactive = INTERACTIVE_MODE|INTERACTIVE_WITH_SANDBOX;
-		args.sandbox = true;
-	}
 	else if (parameter && (strcmp (parameter, "default") == 0))
-	{
 		Option.interactive = INTERACTIVE_MODE;
-		args.sandbox = false;
-	}
 	else if ((!parameter) || *parameter == '\0')
-	{
 		Option.interactive = INTERACTIVE_MODE;
-		args.sandbox = false;
-	}
 	else
+	{
+		const char * p = parameter;
+		if (p && (strncmp (p, "sandbox,", strlen ("sandbox,")) == 0))
+		{
+			Option.interactive = INTERACTIVE_WITH_SANDBOX;
+			p += strlen ("sandbox,");
+		}
+
+		if (p && (strncmp (p, "oneshot:", strlen ("oneshot:")) == 0))
+		{
+			const char *fname = p + strlen ("oneshot:");
+
+			if (fname[0] == '\0')
+				error (FATAL, "No input file name given to --%s=%s", option, parameter);
+
+			Option.interactive |= INTERACTIVE_MODE|INTERACTIVE_ONESHOT;
+			args.fname = fname;
+		}
+	}
+
+	if (! (Option.interactive & INTERACTIVE_MODE))
 		error (FATAL, "Unknown option argument \"%s\" for --%s option",
 			   parameter, option);
+
+	args.sandbox = Option.interactive & INTERACTIVE_WITH_SANDBOX;
 
 #ifndef HAVE_SECCOMP
 	if (args.sandbox)
@@ -1710,13 +1727,21 @@ static void processInteractiveOption (
 		error (FATAL, "sandbox submode does not work if gcov is instrumented");
 #endif
 
-	Option.sorted = SO_UNSORTED;
-	setMainLoop (interactiveLoop, &args);
-	setErrorPrinter (jsonErrorPrinter, NULL);
-	setTagWriter (WRITER_JSON, NULL);
-	enablePtag (PTAG_JSON_OUTPUT_VERSION, true);
+	if (args.fname)
+		loop = interactiveOneshot;
 
-	json_set_alloc_funcs (eMalloc, eFree);
+	setMainLoop (loop, &args);
+
+	if (!args.fname)
+	{
+		Option.sorted = SO_UNSORTED;
+		setErrorPrinter (jsonErrorPrinter, NULL);
+		setTagWriter (WRITER_JSON, NULL);
+		enablePtag (PTAG_JSON_OUTPUT_VERSION, true);
+		json_set_alloc_funcs (eMalloc, eFree);
+	}
+	else if (args.sandbox)
+		Option.sorted = SO_UNSORTED;
 }
 #endif
 

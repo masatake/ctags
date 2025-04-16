@@ -17,9 +17,11 @@
 struct interactiveModeArgs
 {
 	bool sandbox;
+	const char *fname;			/* --_interative=oneshot:FNAME */
 };
 
 void interactiveLoop (cookedArgs *args, void *user);
+void interactiveOneshot (cookedArgs *args, void *user);
 bool jsonErrorPrinter (const errorSelection selection, const char *const format, va_list ap,
 					  void *data);
 int installSyscallFilter (void);
