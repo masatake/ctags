@@ -54,8 +54,11 @@ static int writeJsonPtagEntry (tagWriter *writer CTAGS_ATTR_UNUSED,
 				const char *const parserName,
 				void *clientData);
 
+static void initJsonWriter (void);
+
 tagWriter jsonWriter = {
 	.oformat = "json",
+	.init = initJsonWriter,
 	.writeEntry = writeJsonEntry,
 	.writePtagEntry = writeJsonPtagEntry,
 	.printPtagByDefault = true,
@@ -309,6 +312,19 @@ extern bool ptagMakeJsonOutputVersion (ptagDesc *desc, langType language CTAGS_A
 			       STRINGIFY(JSON_WRITER_CURRENT) "." STRINGIFY(JSON_WRITER_AGE),
 			       "in development",
 			       NULL);
+}
+
+static void initJsonWriter (void)
+{
+#ifdef HAVE_SECCOMP
+	/* sandbox requries this step. */
+	/* As of jansson 2.6, the object hashing is seeded off
+	   of /dev/urandom, so trigger the hash seeding
+	   before installing the syscall filter.
+	*/
+	json_t * tmp = json_object ();
+	json_decref (tmp);
+#endif
 }
 
 #else /* HAVE_JANSSON */
