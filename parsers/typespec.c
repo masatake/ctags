@@ -102,10 +102,9 @@ typedef struct {
 	tokenType		type;
 	keywordId		keyword;
 	vString *		string;
-	vString *		scope;
+	int				scope;
 	unsigned long	lineNumber;
 	MIOPos			filePosition;
-	int				parentKind;  /* KIND_GHOST_INDEX if none */
 } tokenInfo;
 
 static tokenInfo *newToken (void)
@@ -115,10 +114,9 @@ static tokenInfo *newToken (void)
 	token->type			= TOKEN_UNDEFINED;
 	token->keyword		= KEYWORD_NONE;
 	token->string		= vStringNew ();
-	token->scope		= vStringNew ();
+	token->scope		= CORK_NIL;
 	token->lineNumber   = getInputLineNumber ();
 	token->filePosition = getInputFilePosition ();
-	token->parentKind	= KIND_GHOST_INDEX;
 
 	return token;
 }
@@ -126,27 +124,23 @@ static tokenInfo *newToken (void)
 static void deleteToken (tokenInfo *const token)
 {
 	vStringDelete (token->string);
-	vStringDelete (token->scope);
 	eFree (token);
 }
 
 static void copyToken (tokenInfo *const dest, const tokenInfo *const src,
-					   bool scope)
+					   bool copyScope)
 {
 	dest->lineNumber = src->lineNumber;
 	dest->filePosition = src->filePosition;
 	dest->type = src->type;
 	vStringCopy (dest->string, src->string);
-	dest->parentKind = src->parentKind;
-	if (scope)
-		vStringCopy (dest->scope, src->scope);
+	if (copyScope)
+		dest->scope = src->scope;
 }
 
-static void addToScope (tokenInfo *const token, const vString *const extra)
+static void setScope (tokenInfo *const token, int scope)
 {
-	if (vStringLength (token->scope) > 0)
-		vStringCatS (token->scope, SCOPE_SEPARATOR);
-	vStringCatS (token->scope, vStringValue (extra));
+	token->scope = scope;
 }
 
 static bool isIdentChar (const int c)
@@ -339,30 +333,17 @@ static void initTypeSpecEntry (tagEntryInfo *const e, const tokenInfo *const tok
 	e->lineNumber	= token->lineNumber;
 	e->filePosition	= token->filePosition;
 
-	if (vStringLength (token->scope) > 0)
-	{
-		int parentKind = token->parentKind;
-		Assert (parentKind >= 0);
-
-		e->extensionFields.scopeKindIndex = parentKind;
-		e->extensionFields.scopeName = vStringValue (token->scope);
-	}
+	e->extensionFields.scopeIndex = token->scope;
 }
 
-static void makeTypeSpecTag (const tokenInfo *const token, const typeSpecKind kind)
+static int makeTypeSpecTag (const tokenInfo *const token, const typeSpecKind kind)
 {
-	if (TypeSpecKinds[kind].enabled)
-	{
-		tagEntryInfo e;
-
-		initTypeSpecEntry (&e, token, kind);
-		makeTagEntry (&e);
-	}
+	tagEntryInfo e;
+	initTypeSpecEntry (&e, token, kind);
+	return makeTagEntry (&e);
 }
 
-static void enterScope (tokenInfo *const parentToken,
-						const vString *const extraScope,
-						const int parentKind);
+static void enterScope (tokenInfo *const parentToken, int scope);
 
 static void skipTypeParameters(tokenInfo *const token)
 {
@@ -427,7 +408,7 @@ static void parseNamespace(tokenInfo *const token)
 
 	/* Create namespace tag */
 	vStringCopy(token->string, name);
-	makeTypeSpecTag(token, K_NAMESPACE);
+	int namespaceIndex = makeTypeSpecTag(token, K_NAMESPACE);
 
 	/* Parse namespace body */
 	if (token->type == TOKEN_SEMICOLON)
@@ -436,7 +417,7 @@ static void parseNamespace(tokenInfo *const token)
 	}
 	else if (token->type == TOKEN_OPEN_CURLY)
 	{
-		enterScope(token, name, K_NAMESPACE);
+		enterScope(token, namespaceIndex);
 	}
 
 	vStringDelete(name);
@@ -448,19 +429,17 @@ static void parseEnum(tokenInfo *const token)
 
 	if (token->type == TOKEN_IDENTIFIER)
 	{
-		makeTypeSpecTag(token, K_ENUM);
+		int enumIndex = makeTypeSpecTag(token, K_ENUM);
 		readToken(token);
 
 		if (token->type == TOKEN_OPEN_CURLY)
 		{
-			vString *enumName = vStringNewCopy(token->string);
-			enterScope(token, enumName, K_ENUM);
-			vStringDelete(enumName);
+			enterScope(token, enumIndex);
 		}
 	}
 }
 
-static void parseProperty(tokenInfo *const token, const typeSpecKind parentKind)
+static void parseProperty(tokenInfo *const token)
 {
 	if (token->type == TOKEN_IDENTIFIER || token->type == TOKEN_STRING)
 	{
@@ -519,7 +498,7 @@ static void parseInterface(tokenInfo *const token)
 
 	if (token->type == TOKEN_IDENTIFIER)
 	{
-		makeTypeSpecTag(token, K_INTERFACE);
+		int ifaceIndex = makeTypeSpecTag(token, K_INTERFACE);
 		readToken(token);
 
 		/* Skip extends clause */
@@ -533,9 +512,7 @@ static void parseInterface(tokenInfo *const token)
 
 		if (token->type == TOKEN_OPEN_CURLY)
 		{
-			vString *interfaceName = vStringNewCopy(token->string);
-			enterScope(token, interfaceName, K_INTERFACE);
-			vStringDelete(interfaceName);
+			enterScope(token, ifaceIndex);
 		}
 	}
 }
@@ -546,7 +523,7 @@ static void parseModel(tokenInfo *const token)
 
 	if (token->type == TOKEN_IDENTIFIER)
 	{
-		makeTypeSpecTag(token, K_MODEL);
+		int modelIndex = makeTypeSpecTag(token, K_MODEL);
 		readToken(token);
 
 		/* Skip extends clause if any */
@@ -560,9 +537,7 @@ static void parseModel(tokenInfo *const token)
 
 		if (token->type == TOKEN_OPEN_CURLY)
 		{
-			vString *modelName = vStringNewCopy(token->string);
-			enterScope(token, modelName, K_MODEL);
-			vStringDelete(modelName);
+			enterScope(token, modelIndex);
 		}
 	}
 }
@@ -573,14 +548,12 @@ static void parseUnion(tokenInfo *const token)
 
 	if (token->type == TOKEN_IDENTIFIER)
 	{
-		makeTypeSpecTag(token, K_UNION);
+		int unionIndex = makeTypeSpecTag(token, K_UNION);
 		readToken(token);
 
 		if (token->type == TOKEN_OPEN_CURLY)
 		{
-			vString *unionName = vStringNewCopy(token->string);
-			enterScope(token, unionName, K_UNION);
-			vStringDelete(unionName);
+			enterScope(token, unionIndex);
 		}
 	}
 }
@@ -605,20 +578,12 @@ static void parseAlias(tokenInfo *const token)
 	}
 }
 
-static void enterScope (tokenInfo *const parentToken,
-						const vString *const extraScope,
-						const int parentKind)
+static void enterScope (tokenInfo *const parentToken, int scope)
 {
 	tokenInfo *token = newToken ();
-	int origParentKind = parentToken->parentKind;
 
-	copyToken (token, parentToken, true);
-
-	if (extraScope)
-	{
-		addToScope (token, extraScope);
-		token->parentKind = parentKind;
-	}
+	copyToken (token, parentToken, false);
+	setScope (token, scope);
 
 	readToken (token);
 	while (token->type != TOKEN_EOF && token->type != TOKEN_CLOSE_CURLY)
@@ -704,9 +669,12 @@ static void enterScope (tokenInfo *const parentToken,
 
 			case TOKEN_IDENTIFIER:
 			case TOKEN_STRING:
-				if (parentKind == K_MODEL || parentKind == K_INTERFACE)
+				tagEntryInfo *e_parent = getEntryInCorkQueue (scope);
+				if (e_parent
+					&& (e_parent->kindIndex == K_MODEL
+						|| e_parent->kindIndex == K_INTERFACE))
 				{
-					parseProperty(token, parentKind);
+					parseProperty(token);
 				}
 				readToken(token);
 				break;
@@ -718,7 +686,7 @@ static void enterScope (tokenInfo *const parentToken,
 	}
 
 	copyToken (parentToken, token, false);
-	parentToken->parentKind = origParentKind;
+	/* the scope of parentToken is not changed in this function.  */
 	deleteToken (token);
 }
 
@@ -728,7 +696,7 @@ static void findTypeSpecTags (void)
 
 	do
 	{
-		enterScope (token, NULL, KIND_GHOST_INDEX);
+		enterScope (token, CORK_NIL);
 	}
 	while (token->type != TOKEN_EOF);
 
@@ -745,5 +713,7 @@ extern parserDefinition* TypeSpecParser (void)
 	def->parser     = findTypeSpecTags;
 	def->keywordTable = TypeSpecKeywordTable;
 	def->keywordCount = ARRAY_SIZE (TypeSpecKeywordTable);
+	def->defaultScopeSeparator = SCOPE_SEPARATOR;
+	def->useCork = CORK_QUEUE;
 	return def;
 }
