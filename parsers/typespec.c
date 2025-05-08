@@ -189,13 +189,13 @@ static int skipMultiComment (void)
 {
 	int c = getcFromInputFile ();
 	int next = getcFromInputFile ();
-	
+
 	while (c != EOF && !(c == '*' && next == '/'))
 	{
 		c = next;
 		next = getcFromInputFile ();
 	}
-	
+
 	return getcFromInputFile ();
 }
 
@@ -247,7 +247,7 @@ getNextChar:
 		case ')': token->type = TOKEN_CLOSE_PAREN;			break;
 		case ';': token->type = TOKEN_SEMICOLON;			break;
 		case ',': token->type = TOKEN_COMMA;				break;
-		case '.': 
+		case '.':
 		{
 			/* Handle ... (spread) operator */
 			int c1 = getcFromInputFile ();
@@ -312,7 +312,7 @@ getNextChar:
 			else
 			{
 				parseIdentifier (token->string, c);
-				
+
 				/* Check for special keywords */
 				if (strcmp (vStringValue (token->string), "extends") == 0)
 					token->type = TOKEN_EXTENDS;
@@ -367,11 +367,11 @@ static void enterScope (tokenInfo *const parentToken,
 static void skipTypeParameters(tokenInfo *const token)
 {
 	int depth = 1;
-	
+
 	while (depth > 0 && token->type != TOKEN_EOF)
 	{
 		readToken(token);
-		
+
 		if (token->type == TOKEN_OPEN_ANGLE)
 			depth++;
 		else if (token->type == TOKEN_CLOSE_ANGLE)
@@ -382,11 +382,11 @@ static void skipTypeParameters(tokenInfo *const token)
 static void skipEntityBody(tokenInfo *const token)
 {
 	int depth = 1;
-	
+
 	while (depth > 0 && token->type != TOKEN_EOF)
 	{
 		readToken(token);
-		
+
 		if (token->type == TOKEN_OPEN_CURLY)
 			depth++;
 		else if (token->type == TOKEN_CLOSE_CURLY)
@@ -405,18 +405,18 @@ static void skipToSemicolon(tokenInfo *const token)
 static void parseNamespace(tokenInfo *const token)
 {
 	vString *name = vStringNew();
-	
+
 	/* Read namespace components */
 	do
 	{
 		readToken(token);
-		
+
 		if (token->type == TOKEN_IDENTIFIER)
 		{
 			if (vStringLength(name) > 0)
 				vStringCatS(name, SCOPE_SEPARATOR);
 			vStringCat(name, token->string);
-			
+
 			readToken(token);
 		}
 		else
@@ -424,11 +424,11 @@ static void parseNamespace(tokenInfo *const token)
 			break;
 		}
 	} while (token->type == TOKEN_PERIOD);
-	
+
 	/* Create namespace tag */
 	vStringCopy(token->string, name);
 	makeTypeSpecTag(token, K_NAMESPACE);
-	
+
 	/* Parse namespace body */
 	if (token->type == TOKEN_SEMICOLON)
 	{
@@ -438,19 +438,19 @@ static void parseNamespace(tokenInfo *const token)
 	{
 		enterScope(token, name, K_NAMESPACE);
 	}
-	
+
 	vStringDelete(name);
 }
 
 static void parseEnum(tokenInfo *const token)
 {
 	readToken(token);
-	
+
 	if (token->type == TOKEN_IDENTIFIER)
 	{
 		makeTypeSpecTag(token, K_ENUM);
 		readToken(token);
-		
+
 		if (token->type == TOKEN_OPEN_CURLY)
 		{
 			vString *enumName = vStringNewCopy(token->string);
@@ -466,10 +466,10 @@ static void parseProperty(tokenInfo *const token, const typeSpecKind parentKind)
 	{
 		/* This is a property */
 		makeTypeSpecTag(token, K_PROPERTY);
-		
+
 		/* Skip type declaration, modifiers, etc. until ; or , */
-		while (token->type != TOKEN_SEMICOLON && 
-			   token->type != TOKEN_COMMA && 
+		while (token->type != TOKEN_SEMICOLON &&
+			   token->type != TOKEN_COMMA &&
 			   token->type != TOKEN_CLOSE_CURLY &&
 			   token->type != TOKEN_EOF)
 		{
@@ -481,33 +481,33 @@ static void parseProperty(tokenInfo *const token, const typeSpecKind parentKind)
 static void parseOperation(tokenInfo *const token)
 {
 	readToken(token);
-	
+
 	if (token->type == TOKEN_IDENTIFIER)
 	{
 		makeTypeSpecTag(token, K_OPERATION);
 		readToken(token);
-		
+
 		/* Skip generic parameters if any */
 		if (token->type == TOKEN_OPEN_ANGLE)
 		{
 			skipTypeParameters(token);
 		}
-		
+
 		/* Handle "is" relationship */
 		if (token->type == TOKEN_IS)
 		{
 			/* Skip expression after "is" */
 			do {
 				readToken(token);
-				
+
 				if (token->type == TOKEN_OPEN_ANGLE)
 				{
 					skipTypeParameters(token);
 				}
-				
+
 				if (token->type == TOKEN_SEMICOLON)
 					break;
-				
+
 			} while (token->type != TOKEN_SEMICOLON && token->type != TOKEN_EOF);
 		}
 	}
@@ -516,12 +516,12 @@ static void parseOperation(tokenInfo *const token)
 static void parseInterface(tokenInfo *const token)
 {
 	readToken(token);
-	
+
 	if (token->type == TOKEN_IDENTIFIER)
 	{
 		makeTypeSpecTag(token, K_INTERFACE);
 		readToken(token);
-		
+
 		/* Skip extends clause */
 		if (token->type == TOKEN_EXTENDS)
 		{
@@ -530,7 +530,7 @@ static void parseInterface(tokenInfo *const token)
 				readToken(token);
 			}
 		}
-		
+
 		if (token->type == TOKEN_OPEN_CURLY)
 		{
 			vString *interfaceName = vStringNewCopy(token->string);
@@ -543,12 +543,12 @@ static void parseInterface(tokenInfo *const token)
 static void parseModel(tokenInfo *const token)
 {
 	readToken(token);
-	
+
 	if (token->type == TOKEN_IDENTIFIER)
 	{
 		makeTypeSpecTag(token, K_MODEL);
 		readToken(token);
-		
+
 		/* Skip extends clause if any */
 		if (token->type == TOKEN_EXTENDS)
 		{
@@ -557,7 +557,7 @@ static void parseModel(tokenInfo *const token)
 				readToken(token);
 			}
 		}
-		
+
 		if (token->type == TOKEN_OPEN_CURLY)
 		{
 			vString *modelName = vStringNewCopy(token->string);
@@ -570,12 +570,12 @@ static void parseModel(tokenInfo *const token)
 static void parseUnion(tokenInfo *const token)
 {
 	readToken(token);
-	
+
 	if (token->type == TOKEN_IDENTIFIER)
 	{
 		makeTypeSpecTag(token, K_UNION);
 		readToken(token);
-		
+
 		if (token->type == TOKEN_OPEN_CURLY)
 		{
 			vString *unionName = vStringNewCopy(token->string);
@@ -588,18 +588,18 @@ static void parseUnion(tokenInfo *const token)
 static void parseAlias(tokenInfo *const token)
 {
 	readToken(token);
-	
+
 	if (token->type == TOKEN_IDENTIFIER)
 	{
 		makeTypeSpecTag(token, K_ALIAS);
 		readToken(token);
-		
+
 		/* Skip generic parameters if any */
 		if (token->type == TOKEN_OPEN_ANGLE)
 		{
 			skipTypeParameters(token);
 		}
-		
+
 		/* Skip the rest until semicolon */
 		skipToSemicolon(token);
 	}
@@ -675,7 +675,7 @@ static void enterScope (tokenInfo *const parentToken,
 					case KEYWORD_alias:
 						parseAlias(token);
 						break;
-						
+
 					case KEYWORD_using:
 					case KEYWORD_import:
 						skipToSemicolon(token);
@@ -686,11 +686,11 @@ static void enterScope (tokenInfo *const parentToken,
 						break;
 				}
 				break;
-				
+
 			case TOKEN_OPEN_CURLY:
 				skipEntityBody(token);
 				break;
-				
+
 			case TOKEN_SPREAD:
 				/* Skip spread expressions (e.g. ...LivenessSessionData) */
 				readToken(token);
