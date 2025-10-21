@@ -1,0 +1,342 @@
+
+main/libctags_a-flags.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <flagsColprintCompareLines>:
+   0:	41 54                	push   %r12
+   2:	49 89 fc             	mov    %rdi,%r12
+   5:	55                   	push   %rbp
+   6:	48 89 f5             	mov    %rsi,%rbp
+   9:	31 f6                	xor    %esi,%esi
+   b:	53                   	push   %rbx
+   c:	e8 00 00 00 00       	call   11 <flagsColprintCompareLines+0x11>
+  11:	31 f6                	xor    %esi,%esi
+  13:	48 89 ef             	mov    %rbp,%rdi
+  16:	48 89 c3             	mov    %rax,%rbx
+  19:	e8 00 00 00 00       	call   1e <flagsColprintCompareLines+0x1e>
+  1e:	0f b6 10             	movzbl (%rax),%edx
+  21:	80 3b 2d             	cmpb   $0x2d,(%rbx)
+  24:	74 1a                	je     40 <flagsColprintCompareLines+0x40>
+  26:	80 fa 2d             	cmp    $0x2d,%dl
+  29:	74 4f                	je     7a <flagsColprintCompareLines+0x7a>
+  2b:	48 89 df             	mov    %rbx,%rdi
+  2e:	48 89 c6             	mov    %rax,%rsi
+  31:	5b                   	pop    %rbx
+  32:	5d                   	pop    %rbp
+  33:	41 5c                	pop    %r12
+  35:	e9 00 00 00 00       	jmp    3a <flagsColprintCompareLines+0x3a>
+  3a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+  40:	80 fa 2d             	cmp    $0x2d,%dl
+  43:	74 0b                	je     50 <flagsColprintCompareLines+0x50>
+  45:	b8 01 00 00 00       	mov    $0x1,%eax
+  4a:	5b                   	pop    %rbx
+  4b:	5d                   	pop    %rbp
+  4c:	41 5c                	pop    %r12
+  4e:	c3                   	ret
+  4f:	90                   	nop
+  50:	be 01 00 00 00       	mov    $0x1,%esi
+  55:	4c 89 e7             	mov    %r12,%rdi
+  58:	e8 00 00 00 00       	call   5d <flagsColprintCompareLines+0x5d>
+  5d:	be 01 00 00 00       	mov    $0x1,%esi
+  62:	48 89 ef             	mov    %rbp,%rdi
+  65:	48 89 c3             	mov    %rax,%rbx
+  68:	e8 00 00 00 00       	call   6d <flagsColprintCompareLines+0x6d>
+  6d:	0f b6 10             	movzbl (%rax),%edx
+  70:	80 3b 5f             	cmpb   $0x5f,(%rbx)
+  73:	74 13                	je     88 <flagsColprintCompareLines+0x88>
+  75:	80 fa 5f             	cmp    $0x5f,%dl
+  78:	75 b1                	jne    2b <flagsColprintCompareLines+0x2b>
+  7a:	b8 ff ff ff ff       	mov    $0xffffffff,%eax
+  7f:	eb c9                	jmp    4a <flagsColprintCompareLines+0x4a>
+  81:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+  88:	80 fa 5f             	cmp    $0x5f,%dl
+  8b:	75 b8                	jne    45 <flagsColprintCompareLines+0x45>
+  8d:	eb 9c                	jmp    2b <flagsColprintCompareLines+0x2b>
+  8f:	90                   	nop
+
+0000000000000090 <flagsEval>:
+  90:	41 57                	push   %r15
+  92:	41 56                	push   %r14
+  94:	41 55                	push   %r13
+  96:	41 54                	push   %r12
+  98:	55                   	push   %rbp
+  99:	53                   	push   %rbx
+  9a:	48 83 ec 38          	sub    $0x38,%rsp
+  9e:	48 85 ff             	test   %rdi,%rdi
+  a1:	0f 84 3c 02 00 00    	je     2e3 <flagsEval+0x253>
+  a7:	41 89 d4             	mov    %edx,%r12d
+  aa:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
+  af:	48 89 f3             	mov    %rsi,%rbx
+  b2:	48 89 74 24 20       	mov    %rsi,0x20(%rsp)
+  b7:	48 89 7c 24 28       	mov    %rdi,0x28(%rsp)
+  bc:	e8 00 00 00 00       	call   c1 <flagsEval+0x31>
+  c1:	0f b6 10             	movzbl (%rax),%edx
+  c4:	49 89 c7             	mov    %rax,%r15
+  c7:	84 d2                	test   %dl,%dl
+  c9:	0f 84 62 01 00 00    	je     231 <flagsEval+0x1a1>
+  cf:	44 89 e0             	mov    %r12d,%eax
+  d2:	4d 89 fe             	mov    %r15,%r14
+  d5:	31 c9                	xor    %ecx,%ecx
+  d7:	48 8d 2c 40          	lea    (%rax,%rax,2),%rbp
+  db:	48 c1 e5 04          	shl    $0x4,%rbp
+  df:	48 01 dd             	add    %rbx,%rbp
+  e2:	31 db                	xor    %ebx,%ebx
+  e4:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  eb:	00 00 00 00 
+  ef:	90                   	nop
+  f0:	80 fa 7b             	cmp    $0x7b,%dl
+  f3:	74 5b                	je     150 <flagsEval+0xc0>
+  f5:	45 85 e4             	test   %r12d,%r12d
+  f8:	0f 84 77 01 00 00    	je     275 <flagsEval+0x1e5>
+  fe:	4c 8b 6c 24 20       	mov    0x20(%rsp),%r13
+ 103:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+ 10a:	00 00 00 00 
+ 10e:	66 90                	xchg   %ax,%ax
+ 110:	41 0f be 3e          	movsbl (%r14),%edi
+ 114:	41 3a 7d 00          	cmp    0x0(%r13),%dil
+ 118:	75 09                	jne    123 <flagsEval+0x93>
+ 11a:	48 8b 74 24 08       	mov    0x8(%rsp),%rsi
+ 11f:	41 ff 55 10          	call   *0x10(%r13)
+ 123:	49 83 c5 30          	add    $0x30,%r13
+ 127:	49 39 ed             	cmp    %rbp,%r13
+ 12a:	75 e4                	jne    110 <flagsEval+0x80>
+ 12c:	8d 4b 01             	lea    0x1(%rbx),%ecx
+ 12f:	4d 8d 34 0f          	lea    (%r15,%rcx,1),%r14
+ 133:	48 89 cb             	mov    %rcx,%rbx
+ 136:	41 0f b6 16          	movzbl (%r14),%edx
+ 13a:	84 d2                	test   %dl,%dl
+ 13c:	0f 84 ef 00 00 00    	je     231 <flagsEval+0x1a1>
+ 142:	80 fa 7b             	cmp    $0x7b,%dl
+ 145:	75 b7                	jne    fe <flagsEval+0x6e>
+ 147:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+ 14e:	00 00 
+ 150:	8d 43 01             	lea    0x1(%rbx),%eax
+ 153:	41 80 3c 07 7b       	cmpb   $0x7b,(%r15,%rax,1)
+ 158:	0f 84 53 01 00 00    	je     2b1 <flagsEval+0x221>
+ 15e:	49 8d 44 0f 01       	lea    0x1(%r15,%rcx,1),%rax
+ 163:	be 7d 00 00 00       	mov    $0x7d,%esi
+ 168:	48 89 c7             	mov    %rax,%rdi
+ 16b:	48 89 04 24          	mov    %rax,(%rsp)
+ 16f:	e8 00 00 00 00       	call   174 <flagsEval+0xe4>
+ 174:	48 89 c3             	mov    %rax,%rbx
+ 177:	48 85 c0             	test   %rax,%rax
+ 17a:	0f 84 3e 01 00 00    	je     2be <flagsEval+0x22e>
+ 180:	c6 00 00             	movb   $0x0,(%rax)
+ 183:	48 8b 3c 24          	mov    (%rsp),%rdi
+ 187:	be 3d 00 00 00       	mov    $0x3d,%esi
+ 18c:	e8 00 00 00 00       	call   191 <flagsEval+0x101>
+ 191:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+ 196:	48 85 c0             	test   %rax,%rax
+ 199:	0f 84 b1 00 00 00    	je     250 <flagsEval+0x1c0>
+ 19f:	48 39 d8             	cmp    %rbx,%rax
+ 1a2:	0f 83 a8 00 00 00    	jae    250 <flagsEval+0x1c0>
+ 1a8:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+ 1ad:	c6 00 00             	movb   $0x0,(%rax)
+ 1b0:	45 85 e4             	test   %r12d,%r12d
+ 1b3:	74 58                	je     20d <flagsEval+0x17d>
+ 1b5:	48 83 c0 01          	add    $0x1,%rax
+ 1b9:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+ 1be:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+ 1c3:	45 31 f6             	xor    %r14d,%r14d
+ 1c6:	4c 8d 68 08          	lea    0x8(%rax),%r13
+ 1ca:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+ 1d0:	49 8b 75 00          	mov    0x0(%r13),%rsi
+ 1d4:	48 85 f6             	test   %rsi,%rsi
+ 1d7:	74 1f                	je     1f8 <flagsEval+0x168>
+ 1d9:	48 8b 3c 24          	mov    (%rsp),%rdi
+ 1dd:	e8 00 00 00 00       	call   1e2 <flagsEval+0x152>
+ 1e2:	85 c0                	test   %eax,%eax
+ 1e4:	75 12                	jne    1f8 <flagsEval+0x168>
+ 1e6:	48 8b 54 24 08       	mov    0x8(%rsp),%rdx
+ 1eb:	48 8b 74 24 10       	mov    0x10(%rsp),%rsi
+ 1f0:	48 8b 3c 24          	mov    (%rsp),%rdi
+ 1f4:	41 ff 55 10          	call   *0x10(%r13)
+ 1f8:	41 83 c6 01          	add    $0x1,%r14d
+ 1fc:	49 83 c5 30          	add    $0x30,%r13
+ 200:	45 39 e6             	cmp    %r12d,%r14d
+ 203:	72 cb                	jb     1d0 <flagsEval+0x140>
+ 205:	48 83 7c 24 18 00    	cmpq   $0x0,0x18(%rsp)
+ 20b:	74 08                	je     215 <flagsEval+0x185>
+ 20d:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+ 212:	c6 00 3d             	movb   $0x3d,(%rax)
+ 215:	c6 03 7d             	movb   $0x7d,(%rbx)
+ 218:	4c 29 fb             	sub    %r15,%rbx
+ 21b:	8d 4b 01             	lea    0x1(%rbx),%ecx
+ 21e:	4d 8d 34 0f          	lea    (%r15,%rcx,1),%r14
+ 222:	48 89 cb             	mov    %rcx,%rbx
+ 225:	41 0f b6 16          	movzbl (%r14),%edx
+ 229:	84 d2                	test   %dl,%dl
+ 22b:	0f 85 bf fe ff ff    	jne    f0 <flagsEval+0x60>
+ 231:	31 db                	xor    %ebx,%ebx
+ 233:	4c 89 ff             	mov    %r15,%rdi
+ 236:	e8 00 00 00 00       	call   23b <flagsEval+0x1ab>
+ 23b:	48 83 c4 38          	add    $0x38,%rsp
+ 23f:	48 89 d8             	mov    %rbx,%rax
+ 242:	5b                   	pop    %rbx
+ 243:	5d                   	pop    %rbp
+ 244:	41 5c                	pop    %r12
+ 246:	41 5d                	pop    %r13
+ 248:	41 5e                	pop    %r14
+ 24a:	41 5f                	pop    %r15
+ 24c:	c3                   	ret
+ 24d:	0f 1f 00             	nopl   (%rax)
+ 250:	48 c7 44 24 18 00 00 	movq   $0x0,0x18(%rsp)
+ 257:	00 00 
+ 259:	48 c7 44 24 10 00 00 	movq   $0x0,0x10(%rsp)
+ 260:	00 00 
+ 262:	45 85 e4             	test   %r12d,%r12d
+ 265:	0f 85 53 ff ff ff    	jne    1be <flagsEval+0x12e>
+ 26b:	eb a8                	jmp    215 <flagsEval+0x185>
+ 26d:	3c 7b                	cmp    $0x7b,%al
+ 26f:	0f 84 db fe ff ff    	je     150 <flagsEval+0xc0>
+ 275:	8d 4b 01             	lea    0x1(%rbx),%ecx
+ 278:	41 0f b6 04 0f       	movzbl (%r15,%rcx,1),%eax
+ 27d:	84 c0                	test   %al,%al
+ 27f:	74 b0                	je     231 <flagsEval+0x1a1>
+ 281:	3c 7b                	cmp    $0x7b,%al
+ 283:	74 1b                	je     2a0 <flagsEval+0x210>
+ 285:	8d 4b 02             	lea    0x2(%rbx),%ecx
+ 288:	41 0f b6 04 0f       	movzbl (%r15,%rcx,1),%eax
+ 28d:	48 89 cb             	mov    %rcx,%rbx
+ 290:	84 c0                	test   %al,%al
+ 292:	75 d9                	jne    26d <flagsEval+0x1dd>
+ 294:	eb 9b                	jmp    231 <flagsEval+0x1a1>
+ 296:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+ 29d:	00 00 00 
+ 2a0:	83 c3 01             	add    $0x1,%ebx
+ 2a3:	8d 43 01             	lea    0x1(%rbx),%eax
+ 2a6:	41 80 3c 07 7b       	cmpb   $0x7b,(%r15,%rax,1)
+ 2ab:	0f 85 ad fe ff ff    	jne    15e <flagsEval+0xce>
+ 2b1:	48 8b 5c 24 28       	mov    0x28(%rsp),%rbx
+ 2b6:	48 01 cb             	add    %rcx,%rbx
+ 2b9:	e9 75 ff ff ff       	jmp    233 <flagsEval+0x1a3>
+ 2be:	4c 8b 44 24 28       	mov    0x28(%rsp),%r8
+ 2c3:	b9 7d 00 00 00       	mov    $0x7d,%ecx
+ 2c8:	ba 7b 00 00 00       	mov    $0x7b,%edx
+ 2cd:	31 c0                	xor    %eax,%eax
+ 2cf:	be 00 00 00 00       	mov    $0x0,%esi
+ 2d4:	bf 02 00 00 00       	mov    $0x2,%edi
+ 2d9:	e8 00 00 00 00       	call   2de <flagsEval+0x24e>
+ 2de:	e9 4e ff ff ff       	jmp    231 <flagsEval+0x1a1>
+ 2e3:	31 db                	xor    %ebx,%ebx
+ 2e5:	e9 51 ff ff ff       	jmp    23b <flagsEval+0x1ab>
+ 2ea:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+
+00000000000002f0 <flagsColprintTableNew>:
+ 2f0:	31 c9                	xor    %ecx,%ecx
+ 2f2:	ba 00 00 00 00       	mov    $0x0,%edx
+ 2f7:	be 00 00 00 00       	mov    $0x0,%esi
+ 2fc:	31 c0                	xor    %eax,%eax
+ 2fe:	bf 00 00 00 00       	mov    $0x0,%edi
+ 303:	e9 00 00 00 00       	jmp    308 <flagsColprintTableNew+0x18>
+ 308:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+ 30f:	00 
+
+0000000000000310 <flagsColprintAddDefinitions>:
+ 310:	41 57                	push   %r15
+ 312:	41 56                	push   %r14
+ 314:	49 89 fe             	mov    %rdi,%r14
+ 317:	41 55                	push   %r13
+ 319:	41 54                	push   %r12
+ 31b:	41 89 d4             	mov    %edx,%r12d
+ 31e:	55                   	push   %rbp
+ 31f:	48 89 f5             	mov    %rsi,%rbp
+ 322:	53                   	push   %rbx
+ 323:	48 83 ec 18          	sub    $0x18,%rsp
+ 327:	e8 00 00 00 00       	call   32c <flagsColprintAddDefinitions+0x1c>
+ 32c:	48 89 c3             	mov    %rax,%rbx
+ 32f:	45 85 e4             	test   %r12d,%r12d
+ 332:	0f 84 cc 00 00 00    	je     404 <flagsColprintAddDefinitions+0xf4>
+ 338:	4f 8d 2c 64          	lea    (%r12,%r12,2),%r13
+ 33c:	41 bf 2d 00 00 00    	mov    $0x2d,%r15d
+ 342:	49 c1 e5 04          	shl    $0x4,%r13
+ 346:	49 01 ed             	add    %rbp,%r13
+ 349:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+ 350:	4c 89 f7             	mov    %r14,%rdi
+ 353:	e8 00 00 00 00       	call   358 <flagsColprintAddDefinitions+0x48>
+ 358:	0f be 75 00          	movsbl 0x0(%rbp),%esi
+ 35c:	48 89 c7             	mov    %rax,%rdi
+ 35f:	49 89 c4             	mov    %rax,%r12
+ 362:	40 84 f6             	test   %sil,%sil
+ 365:	41 0f 44 f7          	cmove  %r15d,%esi
+ 369:	e8 00 00 00 00       	call   36e <flagsColprintAddDefinitions+0x5e>
+ 36e:	48 8b 75 08          	mov    0x8(%rbp),%rsi
+ 372:	b8 00 00 00 00       	mov    $0x0,%eax
+ 377:	48 89 df             	mov    %rbx,%rdi
+ 37a:	48 85 f6             	test   %rsi,%rsi
+ 37d:	48 0f 44 f0          	cmove  %rax,%rsi
+ 381:	e8 00 00 00 00       	call   386 <flagsColprintAddDefinitions+0x76>
+ 386:	48 8b 45 20          	mov    0x20(%rbp),%rax
+ 38a:	48 85 c0             	test   %rax,%rax
+ 38d:	74 37                	je     3c6 <flagsColprintAddDefinitions+0xb6>
+ 38f:	48 8b 13             	mov    (%rbx),%rdx
+ 392:	48 8d 72 01          	lea    0x1(%rdx),%rsi
+ 396:	48 3b 73 08          	cmp    0x8(%rbx),%rsi
+ 39a:	0f 84 80 00 00 00    	je     420 <flagsColprintAddDefinitions+0x110>
+ 3a0:	48 8b 4b 10          	mov    0x10(%rbx),%rcx
+ 3a4:	48 89 df             	mov    %rbx,%rdi
+ 3a7:	c6 04 11 3d          	movb   $0x3d,(%rcx,%rdx,1)
+ 3ab:	48 8b 13             	mov    (%rbx),%rdx
+ 3ae:	48 8b 4b 10          	mov    0x10(%rbx),%rcx
+ 3b2:	48 8d 72 01          	lea    0x1(%rdx),%rsi
+ 3b6:	48 89 33             	mov    %rsi,(%rbx)
+ 3b9:	48 89 c6             	mov    %rax,%rsi
+ 3bc:	c6 44 11 01 00       	movb   $0x0,0x1(%rcx,%rdx,1)
+ 3c1:	e8 00 00 00 00       	call   3c6 <flagsColprintAddDefinitions+0xb6>
+ 3c6:	48 89 de             	mov    %rbx,%rsi
+ 3c9:	4c 89 e7             	mov    %r12,%rdi
+ 3cc:	e8 00 00 00 00       	call   3d1 <flagsColprintAddDefinitions+0xc1>
+ 3d1:	48 8b 43 10          	mov    0x10(%rbx),%rax
+ 3d5:	48 c7 03 00 00 00 00 	movq   $0x0,(%rbx)
+ 3dc:	4c 89 e7             	mov    %r12,%rdi
+ 3df:	c6 00 00             	movb   $0x0,(%rax)
+ 3e2:	48 8b 75 28          	mov    0x28(%rbp),%rsi
+ 3e6:	b8 00 00 00 00       	mov    $0x0,%eax
+ 3eb:	48 85 f6             	test   %rsi,%rsi
+ 3ee:	48 0f 44 f0          	cmove  %rax,%rsi
+ 3f2:	48 83 c5 30          	add    $0x30,%rbp
+ 3f6:	e8 00 00 00 00       	call   3fb <flagsColprintAddDefinitions+0xeb>
+ 3fb:	4c 39 ed             	cmp    %r13,%rbp
+ 3fe:	0f 85 4c ff ff ff    	jne    350 <flagsColprintAddDefinitions+0x40>
+ 404:	48 83 c4 18          	add    $0x18,%rsp
+ 408:	48 89 df             	mov    %rbx,%rdi
+ 40b:	5b                   	pop    %rbx
+ 40c:	5d                   	pop    %rbp
+ 40d:	41 5c                	pop    %r12
+ 40f:	41 5d                	pop    %r13
+ 411:	41 5e                	pop    %r14
+ 413:	41 5f                	pop    %r15
+ 415:	e9 00 00 00 00       	jmp    41a <flagsColprintAddDefinitions+0x10a>
+ 41a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+ 420:	48 01 f6             	add    %rsi,%rsi
+ 423:	48 89 df             	mov    %rbx,%rdi
+ 426:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+ 42b:	e8 00 00 00 00       	call   430 <flagsColprintAddDefinitions+0x120>
+ 430:	48 8b 13             	mov    (%rbx),%rdx
+ 433:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+ 438:	e9 63 ff ff ff       	jmp    3a0 <flagsColprintAddDefinitions+0x90>
+ 43d:	0f 1f 00             	nopl   (%rax)
+
+0000000000000440 <flagsColprintTablePrint>:
+ 440:	41 54                	push   %r12
+ 442:	49 89 cc             	mov    %rcx,%r12
+ 445:	55                   	push   %rbp
+ 446:	89 d5                	mov    %edx,%ebp
+ 448:	53                   	push   %rbx
+ 449:	89 f3                	mov    %esi,%ebx
+ 44b:	be 00 00 00 00       	mov    $0x0,%esi
+ 450:	48 83 ec 10          	sub    $0x10,%rsp
+ 454:	48 89 7c 24 08       	mov    %rdi,0x8(%rsp)
+ 459:	e8 00 00 00 00       	call   45e <flagsColprintTablePrint+0x1e>
+ 45e:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
+ 463:	48 83 c4 10          	add    $0x10,%rsp
+ 467:	31 f6                	xor    %esi,%esi
+ 469:	40 0f b6 cd          	movzbl %bpl,%ecx
+ 46d:	0f b6 d3             	movzbl %bl,%edx
+ 470:	4d 89 e0             	mov    %r12,%r8
+ 473:	5b                   	pop    %rbx
+ 474:	5d                   	pop    %rbp
+ 475:	41 5c                	pop    %r12
+ 477:	e9 00 00 00 00       	jmp    47c <flagsColprintTablePrint+0x3c>

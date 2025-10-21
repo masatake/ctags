@@ -1,0 +1,31 @@
+.text	input.objdump	/^Disassembly of section .text:$/;"	S	roles:def
+xasprintf	input.objdump	/^0000000000000000 <xasprintf>:$/;"	s	section:.text	roles:def
+vasprintf	input.objdump	/^  54:	94000000 	bl	0 <vasprintf>$/;"	s	symbol:.text.xasprintf	roles:called
+err	input.objdump	/^  70:	94000000 	bl	0 <err>$/;"	s	symbol:.text.xasprintf	roles:called
+bdev_class_finalize	input.objdump	/^0000000000000080 <bdev_class_finalize>:$/;"	s	section:.text	roles:def
+free	input.objdump	/^  b8:	94000000 	bl	0 <free>$/;"	s	symbol:.text.bdev_class_finalize	roles:called
+free	input.objdump	/^  c4:	94000000 	bl	0 <free>$/;"	s	symbol:.text.bdev_class_finalize	roles:called
+read_partitions.constprop.0	input.objdump	/^00000000000000e4 <read_partitions.constprop.0>:$/;"	s	section:.text	roles:def
+fgets	input.objdump	/^ 120:	94000000 	bl	0 <fgets>$/;"	s	symbol:.text.read_partitions.constprop.0	roles:called
+__isoc23_sscanf	input.objdump	/^ 13c:	94000000 	bl	0 <__isoc23_sscanf>$/;"	s	symbol:.text.read_partitions.constprop.0	roles:called
+calloc	input.objdump	/^ 178:	94000000 	bl	0 <calloc>$/;"	s	symbol:.text.read_partitions.constprop.0	roles:called
+strdup	input.objdump	/^ 190:	94000000 	bl	0 <strdup>$/;"	s	symbol:.text.read_partitions.constprop.0	roles:called
+err	input.objdump	/^ 1e0:	94000000 	bl	0 <err>$/;"	s	symbol:.text.read_partitions.constprop.0	roles:called
+err	input.objdump	/^ 1f0:	94000000 	bl	0 <err>$/;"	s	symbol:.text.read_partitions.constprop.0	roles:called
+bdev_class_initialize	input.objdump	/^0000000000000200 <bdev_class_initialize>:$/;"	s	section:.text	roles:def
+fopen	input.objdump	/^ 224:	94000000 	bl	0 <fopen>$/;"	s	symbol:.text.bdev_class_initialize	roles:called
+read_partitions.constprop.0	input.objdump	/^ 234:	97ffffac 	bl	e4 <read_partitions.constprop.0>$/;"	s	symbol:.text.bdev_class_initialize	roles:called
+bdev_fill_column	input.objdump	/^0000000000000250 <bdev_fill_column>:$/;"	s	section:.text	roles:def
+strdup	input.objdump	/^ 2d0:	94000000 	bl	0 <strdup>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+scols_line_refer_data	input.objdump	/^ 2e8:	94000000 	bl	0 <scols_line_refer_data>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+scols_line_set_data	input.objdump	/^ 324:	94000000 	bl	0 <scols_line_set_data>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+dcgettext	input.objdump	/^ 33c:	94000000 	bl	0 <dcgettext>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+err	input.objdump	/^ 348:	94000000 	bl	0 <err>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+scols_line_set_data	input.objdump	/^ 35c:	94000000 	bl	0 <scols_line_set_data>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+xasprintf	input.objdump	/^ 39c:	97ffff19 	bl	0 <xasprintf>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+get_blkdrv	input.objdump	/^ 3bc:	94000000 	bl	0 <get_blkdrv>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+xasprintf	input.objdump	/^ 3dc:	97ffff09 	bl	0 <xasprintf>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+get_blkdrv	input.objdump	/^ 3f0:	94000000 	bl	0 <get_blkdrv>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+xasprintf	input.objdump	/^ 414:	97fffefb 	bl	0 <xasprintf>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+err	input.objdump	/^ 428:	94000000 	bl	0 <err>$/;"	s	symbol:.text.bdev_fill_column	roles:called
+get_partition	input.objdump	/^000000000000042c <get_partition>:$/;"	s	section:.text	roles:def

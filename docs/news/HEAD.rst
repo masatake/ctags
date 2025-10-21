@@ -76,6 +76,10 @@ QemuHX:
     * Implement a selector arbitrating Haxe and QemuHX parsers, both handling
 	  ``.hx`` file extension.
 
+ObjdumpD:
+
+	* Extract sections and symbols from ``objdump --disassemble`` output.
+
 New parsers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The following parsers have been added:

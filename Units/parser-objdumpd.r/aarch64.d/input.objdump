@@ -1,0 +1,300 @@
+
+./lsfd-cmd/lsfd-bdev.o:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+0000000000000000 <xasprintf>:
+   0:	a9b07bfd 	stp	x29, x30, [sp, #-256]!
+   4:	128005ea 	mov	w10, #0xffffffd0            	// #-48
+   8:	12800fe9 	mov	w9, #0xffffff80            	// #-128
+   c:	910003fd 	mov	x29, sp
+  10:	910403e8 	add	x8, sp, #0x100
+  14:	910343eb 	add	x11, sp, #0xd0
+  18:	a90323e8 	stp	x8, x8, [sp, #48]
+  1c:	910043e8 	add	x8, sp, #0x10
+  20:	f90023eb 	str	x11, [sp, #64]
+  24:	290927ea 	stp	w10, w9, [sp, #72]
+  28:	a90d0fe2 	stp	x2, x3, [sp, #208]
+  2c:	aa0803e2 	mov	x2, x8
+  30:	ad41fffe 	ldp	q30, q31, [sp, #48]
+  34:	a90e17e4 	stp	x4, x5, [sp, #224]
+  38:	a90f1fe6 	stp	x6, x7, [sp, #240]
+  3c:	3d8007fe 	str	q30, [sp, #16]
+  40:	ad0287e0 	stp	q0, q1, [sp, #80]
+  44:	ad038fe2 	stp	q2, q3, [sp, #112]
+  48:	ad0497e4 	stp	q4, q5, [sp, #144]
+  4c:	ad059fe6 	stp	q6, q7, [sp, #176]
+  50:	3d80051f 	str	q31, [x8, #16]
+  54:	94000000 	bl	0 <vasprintf>
+  58:	37f80060 	tbnz	w0, #31, 64 <xasprintf+0x64>
+  5c:	a8d07bfd 	ldp	x29, x30, [sp], #256
+  60:	d65f03c0 	ret
+  64:	90000001 	adrp	x1, 0 <xasprintf>
+  68:	52800020 	mov	w0, #0x1                   	// #1
+  6c:	91000021 	add	x1, x1, #0x0
+  70:	94000000 	bl	0 <err>
+  74:	d503201f 	nop
+  78:	d503201f 	nop
+  7c:	d503201f 	nop
+
+0000000000000080 <bdev_class_finalize>:
+  80:	a9bd7bfd 	stp	x29, x30, [sp, #-48]!
+  84:	90000000 	adrp	x0, 0 <xasprintf>
+  88:	910003fd 	mov	x29, sp
+  8c:	a90153f3 	stp	x19, x20, [sp, #16]
+  90:	f9400013 	ldr	x19, [x0]
+  94:	f9400274 	ldr	x20, [x19]
+  98:	f90013f5 	str	x21, [sp, #32]
+  9c:	91000015 	add	x21, x0, #0x0
+  a0:	eb15027f 	cmp	x19, x21
+  a4:	54000180 	b.eq	d4 <bdev_class_finalize+0x54>  // b.none
+  a8:	f9400661 	ldr	x1, [x19, #8]
+  ac:	f9400e60 	ldr	x0, [x19, #24]
+  b0:	f9000681 	str	x1, [x20, #8]
+  b4:	f9000034 	str	x20, [x1]
+  b8:	94000000 	bl	0 <free>
+  bc:	aa1303e0 	mov	x0, x19
+  c0:	aa1403f3 	mov	x19, x20
+  c4:	94000000 	bl	0 <free>
+  c8:	f9400294 	ldr	x20, [x20]
+  cc:	eb15027f 	cmp	x19, x21
+  d0:	54fffec1 	b.ne	a8 <bdev_class_finalize+0x28>  // b.any
+  d4:	f94013f5 	ldr	x21, [sp, #32]
+  d8:	a94153f3 	ldp	x19, x20, [sp, #16]
+  dc:	a8c37bfd 	ldp	x29, x30, [sp], #48
+  e0:	d65f03c0 	ret
+
+00000000000000e4 <read_partitions.constprop.0>:
+  e4:	d10943ff 	sub	sp, sp, #0x250
+  e8:	a9007bfd 	stp	x29, x30, [sp]
+  ec:	910003fd 	mov	x29, sp
+  f0:	a9025bf5 	stp	x21, x22, [sp, #32]
+  f4:	aa0003f6 	mov	x22, x0
+  f8:	910143f5 	add	x21, sp, #0x50
+  fc:	a90363f7 	stp	x23, x24, [sp, #48]
+ 100:	90000018 	adrp	x24, 0 <xasprintf>
+ 104:	910543f7 	add	x23, sp, #0x150
+ 108:	91000318 	add	x24, x24, #0x0
+ 10c:	a90153f3 	stp	x19, x20, [sp, #16]
+ 110:	910133f3 	add	x19, sp, #0x4c
+ 114:	aa1603e2 	mov	x2, x22
+ 118:	aa1503e0 	mov	x0, x21
+ 11c:	52802001 	mov	w1, #0x100                 	// #256
+ 120:	94000000 	bl	0 <fgets>
+ 124:	b40004a0 	cbz	x0, 1b8 <read_partitions.constprop.0+0xd4>
+ 128:	aa1703e4 	mov	x4, x23
+ 12c:	aa1303e3 	mov	x3, x19
+ 130:	910123e2 	add	x2, sp, #0x48
+ 134:	aa1803e1 	mov	x1, x24
+ 138:	aa1503e0 	mov	x0, x21
+ 13c:	94000000 	bl	0 <__isoc23_sscanf>
+ 140:	71000c1f 	cmp	w0, #0x3
+ 144:	54fffe81 	b.ne	114 <read_partitions.constprop.0+0x30>  // b.any
+ 148:	29490fe2 	ldp	w2, w3, [sp, #72]
+ 14c:	d2800401 	mov	x1, #0x20                  	// #32
+ 150:	d2800020 	mov	x0, #0x1                   	// #1
+ 154:	92401c64 	and	x4, x3, #0xff
+ 158:	d3747c74 	ubfiz	x20, x3, #12, #32
+ 15c:	d3607c43 	lsl	x3, x2, #32
+ 160:	92544c63 	and	x3, x3, #0xfffff00000000000
+ 164:	d3782c42 	ubfiz	x2, x2, #8, #12
+ 168:	aa030042 	orr	x2, x2, x3
+ 16c:	926c5e94 	and	x20, x20, #0xffffff00000
+ 170:	aa040294 	orr	x20, x20, x4
+ 174:	aa020294 	orr	x20, x20, x2
+ 178:	94000000 	bl	0 <calloc>
+ 17c:	aa0003f3 	mov	x19, x0
+ 180:	b4000280 	cbz	x0, 1d0 <read_partitions.constprop.0+0xec>
+ 184:	a9004e73 	stp	x19, x19, [x19]
+ 188:	aa1703e0 	mov	x0, x23
+ 18c:	f9000a74 	str	x20, [x19, #16]
+ 190:	94000000 	bl	0 <strdup>
+ 194:	b4000280 	cbz	x0, 1e4 <read_partitions.constprop.0+0x100>
+ 198:	90000001 	adrp	x1, 0 <xasprintf>
+ 19c:	91000021 	add	x1, x1, #0x0
+ 1a0:	f9000e60 	str	x0, [x19, #24]
+ 1a4:	f9400420 	ldr	x0, [x1, #8]
+ 1a8:	a9000261 	stp	x1, x0, [x19]
+ 1ac:	f9000433 	str	x19, [x1, #8]
+ 1b0:	f9000013 	str	x19, [x0]
+ 1b4:	17ffffd7 	b	110 <read_partitions.constprop.0+0x2c>
+ 1b8:	a9407bfd 	ldp	x29, x30, [sp]
+ 1bc:	a94153f3 	ldp	x19, x20, [sp, #16]
+ 1c0:	a9425bf5 	ldp	x21, x22, [sp, #32]
+ 1c4:	a94363f7 	ldp	x23, x24, [sp, #48]
+ 1c8:	910943ff 	add	sp, sp, #0x250
+ 1cc:	d65f03c0 	ret
+ 1d0:	90000001 	adrp	x1, 0 <xasprintf>
+ 1d4:	d2800402 	mov	x2, #0x20                  	// #32
+ 1d8:	91000021 	add	x1, x1, #0x0
+ 1dc:	52800020 	mov	w0, #0x1                   	// #1
+ 1e0:	94000000 	bl	0 <err>
+ 1e4:	90000001 	adrp	x1, 0 <xasprintf>
+ 1e8:	52800020 	mov	w0, #0x1                   	// #1
+ 1ec:	91000021 	add	x1, x1, #0x0
+ 1f0:	94000000 	bl	0 <err>
+ 1f4:	d503201f 	nop
+ 1f8:	d503201f 	nop
+ 1fc:	d503201f 	nop
+
+0000000000000200 <bdev_class_initialize>:
+ 200:	a9be7bfd 	stp	x29, x30, [sp, #-32]!
+ 204:	90000002 	adrp	x2, 0 <xasprintf>
+ 208:	91000042 	add	x2, x2, #0x0
+ 20c:	910003fd 	mov	x29, sp
+ 210:	90000001 	adrp	x1, 0 <xasprintf>
+ 214:	90000000 	adrp	x0, 0 <xasprintf>
+ 218:	91000021 	add	x1, x1, #0x0
+ 21c:	a9000842 	stp	x2, x2, [x2]
+ 220:	91000000 	add	x0, x0, #0x0
+ 224:	94000000 	bl	0 <fopen>
+ 228:	b4000100 	cbz	x0, 248 <bdev_class_initialize+0x48>
+ 22c:	f9000bf3 	str	x19, [sp, #16]
+ 230:	aa0003f3 	mov	x19, x0
+ 234:	97ffffac 	bl	e4 <read_partitions.constprop.0>
+ 238:	aa1303e0 	mov	x0, x19
+ 23c:	f9400bf3 	ldr	x19, [sp, #16]
+ 240:	a8c27bfd 	ldp	x29, x30, [sp], #32
+ 244:	14000000 	b	0 <fclose>
+ 248:	a8c27bfd 	ldp	x29, x30, [sp], #32
+ 24c:	d65f03c0 	ret
+
+0000000000000250 <bdev_fill_column>:
+ 250:	a9bc7bfd 	stp	x29, x30, [sp, #-64]!
+ 254:	910003fd 	mov	x29, sp
+ 258:	a90153f3 	stp	x19, x20, [sp, #16]
+ 25c:	aa0103f3 	mov	x19, x1
+ 260:	aa0403f4 	mov	x20, x4
+ 264:	f90013f5 	str	x21, [sp, #32]
+ 268:	aa0203f5 	mov	x21, x2
+ 26c:	f9001fff 	str	xzr, [sp, #56]
+ 270:	71007c7f 	cmp	w3, #0x1f
+ 274:	54000840 	b.eq	37c <bdev_fill_column+0x12c>  // b.none
+ 278:	5400046d 	b.le	304 <bdev_fill_column+0xb4>
+ 27c:	7101087f 	cmp	w3, #0x42
+ 280:	540000a0 	b.eq	294 <bdev_fill_column+0x44>  // b.none
+ 284:	7101347f 	cmp	w3, #0x4d
+ 288:	54000620 	b.eq	34c <bdev_fill_column+0xfc>  // b.none
+ 28c:	7100bc7f 	cmp	w3, #0x2f
+ 290:	540006c1 	b.ne	368 <bdev_fill_column+0x118>  // b.any
+ 294:	90000002 	adrp	x2, 0 <xasprintf>
+ 298:	91000040 	add	x0, x2, #0x0
+ 29c:	f9402661 	ldr	x1, [x19, #72]
+ 2a0:	f9400043 	ldr	x3, [x2]
+ 2a4:	eb00007f 	cmp	x3, x0
+ 2a8:	540000a1 	b.ne	2bc <bdev_fill_column+0x6c>  // b.any
+ 2ac:	1400004e 	b	3e4 <bdev_fill_column+0x194>
+ 2b0:	f9400063 	ldr	x3, [x3]
+ 2b4:	eb00007f 	cmp	x3, x0
+ 2b8:	54000960 	b.eq	3e4 <bdev_fill_column+0x194>  // b.none
+ 2bc:	f9400865 	ldr	x5, [x3, #16]
+ 2c0:	eb05003f 	cmp	x1, x5
+ 2c4:	54ffff61 	b.ne	2b0 <bdev_fill_column+0x60>  // b.any
+ 2c8:	f9400c60 	ldr	x0, [x3, #24]
+ 2cc:	b40008c0 	cbz	x0, 3e4 <bdev_fill_column+0x194>
+ 2d0:	94000000 	bl	0 <strdup>
+ 2d4:	aa0003e2 	mov	x2, x0
+ 2d8:	b4000a20 	cbz	x0, 41c <bdev_fill_column+0x1cc>
+ 2dc:	f9001fe0 	str	x0, [sp, #56]
+ 2e0:	aa1403e1 	mov	x1, x20
+ 2e4:	aa1503e0 	mov	x0, x21
+ 2e8:	94000000 	bl	0 <scols_line_refer_data>
+ 2ec:	35000200 	cbnz	w0, 32c <bdev_fill_column+0xdc>
+ 2f0:	f94013f5 	ldr	x21, [sp, #32]
+ 2f4:	52800020 	mov	w0, #0x1                   	// #1
+ 2f8:	a94153f3 	ldp	x19, x20, [sp, #16]
+ 2fc:	a8c47bfd 	ldp	x29, x30, [sp], #64
+ 300:	d65f03c0 	ret
+ 304:	7100087f 	cmp	w3, #0x2
+ 308:	54000520 	b.eq	3ac <bdev_fill_column+0x15c>  // b.none
+ 30c:	71003c7f 	cmp	w3, #0xf
+ 310:	540002c1 	b.ne	368 <bdev_fill_column+0x118>  // b.any
+ 314:	aa0203e0 	mov	x0, x2
+ 318:	aa0403e1 	mov	x1, x4
+ 31c:	90000002 	adrp	x2, 0 <xasprintf>
+ 320:	91000042 	add	x2, x2, #0x0
+ 324:	94000000 	bl	0 <scols_line_set_data>
+ 328:	34fffe40 	cbz	w0, 2f0 <bdev_fill_column+0xa0>
+ 32c:	528000a2 	mov	w2, #0x5                   	// #5
+ 330:	90000001 	adrp	x1, 0 <xasprintf>
+ 334:	d2800000 	mov	x0, #0x0                   	// #0
+ 338:	91000021 	add	x1, x1, #0x0
+ 33c:	94000000 	bl	0 <dcgettext>
+ 340:	aa0003e1 	mov	x1, x0
+ 344:	52800020 	mov	w0, #0x1                   	// #1
+ 348:	94000000 	bl	0 <err>
+ 34c:	aa0203e0 	mov	x0, x2
+ 350:	aa0403e1 	mov	x1, x4
+ 354:	90000002 	adrp	x2, 0 <xasprintf>
+ 358:	91000042 	add	x2, x2, #0x0
+ 35c:	94000000 	bl	0 <scols_line_set_data>
+ 360:	34fffc80 	cbz	w0, 2f0 <bdev_fill_column+0xa0>
+ 364:	17fffff2 	b	32c <bdev_fill_column+0xdc>
+ 368:	f94013f5 	ldr	x21, [sp, #32]
+ 36c:	52800000 	mov	w0, #0x0                   	// #0
+ 370:	a94153f3 	ldp	x19, x20, [sp, #16]
+ 374:	a8c47bfd 	ldp	x29, x30, [sp], #64
+ 378:	d65f03c0 	ret
+ 37c:	f9402664 	ldr	x4, [x19, #72]
+ 380:	90000001 	adrp	x1, 0 <xasprintf>
+ 384:	9100e3e0 	add	x0, sp, #0x38
+ 388:	91000021 	add	x1, x1, #0x0
+ 38c:	d34cfc83 	lsr	x3, x4, #12
+ 390:	d360fc82 	lsr	x2, x4, #32
+ 394:	33001c83 	bfxil	w3, w4, #0, #8
+ 398:	33084c82 	bfxil	w2, w4, #8, #12
+ 39c:	97ffff19 	bl	0 <xasprintf>
+ 3a0:	f9401fe2 	ldr	x2, [sp, #56]
+ 3a4:	b5fff9e2 	cbnz	x2, 2e0 <bdev_fill_column+0x90>
+ 3a8:	17ffffe1 	b	32c <bdev_fill_column+0xdc>
+ 3ac:	f9402421 	ldr	x1, [x1, #72]
+ 3b0:	d360fc20 	lsr	x0, x1, #32
+ 3b4:	33084c20 	bfxil	w0, w1, #8, #12
+ 3b8:	2a0003e0 	mov	w0, w0
+ 3bc:	94000000 	bl	0 <get_blkdrv>
+ 3c0:	b5fff880 	cbnz	x0, 2d0 <bdev_fill_column+0x80>
+ 3c4:	f9402663 	ldr	x3, [x19, #72]
+ 3c8:	9100e3e0 	add	x0, sp, #0x38
+ 3cc:	90000001 	adrp	x1, 0 <xasprintf>
+ 3d0:	91000021 	add	x1, x1, #0x0
+ 3d4:	d360fc62 	lsr	x2, x3, #32
+ 3d8:	33084c62 	bfxil	w2, w3, #8, #12
+ 3dc:	97ffff09 	bl	0 <xasprintf>
+ 3e0:	17fffff0 	b	3a0 <bdev_fill_column+0x150>
+ 3e4:	d360fc20 	lsr	x0, x1, #32
+ 3e8:	33084c20 	bfxil	w0, w1, #8, #12
+ 3ec:	2a0003e0 	mov	w0, w0
+ 3f0:	94000000 	bl	0 <get_blkdrv>
+ 3f4:	aa0003e2 	mov	x2, x0
+ 3f8:	b4fffc20 	cbz	x0, 37c <bdev_fill_column+0x12c>
+ 3fc:	f9402664 	ldr	x4, [x19, #72]
+ 400:	9100e3e0 	add	x0, sp, #0x38
+ 404:	90000001 	adrp	x1, 0 <xasprintf>
+ 408:	91000021 	add	x1, x1, #0x0
+ 40c:	d34cfc83 	lsr	x3, x4, #12
+ 410:	33001c83 	bfxil	w3, w4, #0, #8
+ 414:	97fffefb 	bl	0 <xasprintf>
+ 418:	17ffffe2 	b	3a0 <bdev_fill_column+0x150>
+ 41c:	90000001 	adrp	x1, 0 <xasprintf>
+ 420:	52800020 	mov	w0, #0x1                   	// #1
+ 424:	91000021 	add	x1, x1, #0x0
+ 428:	94000000 	bl	0 <err>
+
+000000000000042c <get_partition>:
+ 42c:	90000001 	adrp	x1, 0 <xasprintf>
+ 430:	91000023 	add	x3, x1, #0x0
+ 434:	f9400021 	ldr	x1, [x1]
+ 438:	eb03003f 	cmp	x1, x3
+ 43c:	540000a1 	b.ne	450 <get_partition+0x24>  // b.any
+ 440:	14000009 	b	464 <get_partition+0x38>
+ 444:	f9400021 	ldr	x1, [x1]
+ 448:	eb03003f 	cmp	x1, x3
+ 44c:	540000c0 	b.eq	464 <get_partition+0x38>  // b.none
+ 450:	f9400822 	ldr	x2, [x1, #16]
+ 454:	eb00005f 	cmp	x2, x0
+ 458:	54ffff61 	b.ne	444 <get_partition+0x18>  // b.any
+ 45c:	f9400c20 	ldr	x0, [x1, #24]
+ 460:	d65f03c0 	ret
+ 464:	d2800000 	mov	x0, #0x0                   	// #0
+ 468:	d65f03c0 	ret

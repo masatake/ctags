@@ -1,0 +1,6 @@
+.text	input.objdump	/^Disassembly of section .text:$/;"	S	roles:def
+flagsColprintCompareLines	input.objdump	/^0000000000000000 <flagsColprintCompareLines>:$/;"	s	section:.text	roles:def
+flagsEval	input.objdump	/^0000000000000090 <flagsEval>:$/;"	s	section:.text	roles:def
+flagsColprintTableNew	input.objdump	/^00000000000002f0 <flagsColprintTableNew>:$/;"	s	section:.text	roles:def
+flagsColprintAddDefinitions	input.objdump	/^0000000000000310 <flagsColprintAddDefinitions>:$/;"	s	section:.text	roles:def
+flagsColprintTablePrint	input.objdump	/^0000000000000440 <flagsColprintTablePrint>:$/;"	s	section:.text	roles:def

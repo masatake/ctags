@@ -1,0 +1,37 @@
+#
+#  ObjdumpD.ctags --- regex parser for the output of objdump -d
+#
+#  Copyright (c) 2025 Masatake YAMATO
+#  Copyright (c) 2025 Red Hat, Inc.
+#
+#  This source code is released for free distribution under the terms of the
+#  GNU General Public License version 2 or (at your option) any later version.
+#
+--langdef=ObjdumpD
+--map-ObjdumpD=+.objdump
+
+--kinddef-ObjdumpD=S,section,sections
+--kinddef-ObjdumpD=s,symbol,symbols
+--_roledef-ObjdumpD.{symbol}=called,specified as a callable
+
+--regex-ObjdumpD=/^Disassembly of section ([^:]+)/\1/S/p{exclusive}{{
+   _scopeclear
+   .  _scopepush
+}}
+
+--regex-ObjdumpD=/^[0-9a-f]+ <([^>]+)>:/\1/s/p{exclusive}{{
+   _scopedepth 2 eq {
+      _scopepop
+   } if
+   . _scoperef
+   . _scopepush
+}}
+
+--regex-ObjdumpD=/^[ \t]+[0-9a-f]+:[ \t]+(?:(?:[0-9a-f][0-9a-f] )+|[0-9a-f]+)[ \t]+(?:call.+|bl)[^<]*<([^>+]+)(\+0x[a-f0-9]+)?>.*/\1/s/p{_role=called}{{
+   _scopetop {
+      . _scoperef
+      :name . :name eq {
+         . _markplaceholder
+      } if
+   } if
+}}

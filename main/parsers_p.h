@@ -51,7 +51,8 @@
 
 #ifdef HAVE_PCRE2
 #define OPTLIB2C_PCRE2_PARSER_LIST			\
-	RDocParser
+	RDocParser, \
+	ObjdumpDParser
 #else
 #define OPTLIB2C_PCRE2_PARSER_LIST
 #endif
