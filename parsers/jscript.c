@@ -302,6 +302,9 @@ static fieldDefinition Prefix##Fields[] = {								\
 
 defineJsLangModel(Js);
 
+#define CurrentKinds (getInputLanguage () == Lang_js ? JsKinds : JsxKinds)
+#define CurrentFields (getInputLanguage () == Lang_js ? JsFieldds : JsxFields)
+
 static const keywordTable JsKeywordTable [] = {
 	/* keyword		keyword ID */
 	{ "function",	KEYWORD_function			},
@@ -553,7 +556,7 @@ static int makeJsTagCommon (const tokenInfo *const token, const jsKind kind,
 		e.extensionFields.access = "private";
 
 	if (is_static)
-		attachParserField (&e, JsFields[F_PROPERTIES].ftype, "static");
+		attachParserField (&e, CurrentFields[F_PROPERTIES].ftype, "static");
 
 #ifdef DO_TRACING
 	{
@@ -3748,12 +3751,12 @@ getKindStringForCorkIndex(int index)
 	if (e->kindIndex == KIND_GHOST_INDEX)
 		return "ghost";
 
-	return JsKinds [e->kindIndex].name;
+	return CurrentKinds[e->kindIndex].name;
 }
 
 static const char *kindName(jsKind kind)
 {
-	return ((int)kind) >= 0 ? JsKinds[kind].name : "none";
+	return ((int)kind) >= 0 ? CurrentKinds[kind].name : "none";
 }
 
 static const char *tokenTypeName(enum eTokenType e)
@@ -3793,8 +3796,6 @@ static const char *tokenTypeName(enum eTokenType e)
 
 static void initializeCommon ()
 {
-	Assert (ARRAY_SIZE (JsKinds) == JSTAG_COUNT);
-
 	if (! TokenPoolRefCount++)
 		TokenPool = objPoolNew (16, newPoolToken, deletePoolToken, clearPoolToken, NULL);
 }
@@ -3810,6 +3811,7 @@ static void finalizeCommon (bool initialized)
 
 static void initializeJs (const langType language)
 {
+	Assert (ARRAY_SIZE (JsKinds) == JSTAG_COUNT);
 	Lang_js = language;
 	initializeCommon ();
 }
@@ -3821,6 +3823,7 @@ static void finalizeJs (langType language CTAGS_ATTR_UNUSED, bool initialized)
 
 static void initializeJsx (const langType language)
 {
+	Assert (ARRAY_SIZE (JsxKinds) == JSTAG_COUNT);
 	Lang_jsx = language;
 	initializeCommon ();
 }
@@ -3903,10 +3906,10 @@ extern parserDefinition* JsxParser (void)
 	/*
 	 * New definitions for parsing instead of regex
 	 */
-	def->kindTable	= JsKinds;
-	def->kindCount	= ARRAY_SIZE (JsKinds);
-	def->fieldTable = JsFields;
-	def->fieldCount = ARRAY_SIZE (JsFields);
+	def->kindTable	= JsxKinds;
+	def->kindCount	= ARRAY_SIZE (JsxKinds);
+	def->fieldTable = JsxFields;
+	def->fieldCount = ARRAY_SIZE (JsxFields);
 	def->parser		= findJsTags;
 	def->initialize = initializeJsx;
 	def->finalize   = finalizeJsx;
