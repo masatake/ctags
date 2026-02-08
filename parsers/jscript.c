@@ -256,44 +256,49 @@ typedef enum {
 	JS_CLASS_CHAINELT,
 } jsClassRole;
 
-static roleDefinition JsFunctionRoles [] = {
-	/* Currently V parser wants this items. */
-	{ true, "foreigndecl", "declared in foreign languages",
-	  .version = 1 },
-};
+#define defineJsLangModel(Prefix)										\
+static roleDefinition Prefix##FunctionRoles [] = {						\
+	/* Currently V parser wants this items. */							\
+	{ true, "foreigndecl", "declared in foreign languages",				\
+	  .version = 1 },													\
+};																		\
+																		\
+static roleDefinition Prefix##VariableRoles [] = {						\
+	{ false, "chainElt", "(EXPERIMENTAL)used as an element in a name chain like a.b.c" }, \
+};																		\
+																		\
+static roleDefinition Prefix##ClassRoles [] = {							\
+	{ false, "chainElt", "(EXPERIMENTAL)used as an element in a name chain like a.b.c" }, \
+};																		\
+																		\
+static kindDefinition Prefix##Kinds [] = {								\
+	{ true,  'f', "function",	  "functions",							\
+	  .referenceOnly = false, ATTACH_ROLES(Prefix##FunctionRoles) },	\
+	{ true,  'c', "class",		  "classes",							\
+	  .referenceOnly = false, ATTACH_ROLES(Prefix##ClassRoles)    },	\
+	{ true,  'm', "method",		  "methods"          },					\
+	{ true,  'p', "property",	  "properties"       },					\
+	{ true,  'C', "constant",	  "constants"        },					\
+	{ true,  'v', "variable",	  "global variables",					\
+	  .referenceOnly = false, ATTACH_ROLES(Prefix##VariableRoles) },	\
+	{ true,  'g', "generator",	  "generators"       },					\
+	{ true,  'G', "getter",		  "getters"          },					\
+	{ true,  'S', "setter",		  "setters"          },					\
+	{ true,  'M', "field",		  "fields"           },					\
+};																		\
+																		\
+static fieldDefinition Prefix##Fields[] = {								\
+	{																	\
+		.name = "properties",											\
+		.description = "properties (static)",							\
+		.enabled = false,												\
+		.version = 2,													\
+	},																	\
+};																		\
+ \
+ struct END_OF_LANG_MODE_DEF
 
-static roleDefinition JsVariableRoles [] = {
-	{ false, "chainElt", "(EXPERIMENTAL)used as an element in a name chain like a.b.c" },
-};
-
-static roleDefinition JsClassRoles [] = {
-	{ false, "chainElt", "(EXPERIMENTAL)used as an element in a name chain like a.b.c" },
-};
-
-static kindDefinition JsKinds [] = {
-	{ true,  'f', "function",	  "functions",
-	  .referenceOnly = false, ATTACH_ROLES(JsFunctionRoles) },
-	{ true,  'c', "class",		  "classes",
-	  .referenceOnly = false, ATTACH_ROLES(JsClassRoles)    },
-	{ true,  'm', "method",		  "methods"          },
-	{ true,  'p', "property",	  "properties"       },
-	{ true,  'C', "constant",	  "constants"        },
-	{ true,  'v', "variable",	  "global variables",
-	  .referenceOnly = false, ATTACH_ROLES(JsVariableRoles) },
-	{ true,  'g', "generator",	  "generators"       },
-	{ true,  'G', "getter",		  "getters"          },
-	{ true,  'S', "setter",		  "setters"          },
-	{ true,  'M', "field",		  "fields"           },
-};
-
-static fieldDefinition JsFields[] = {
-	{
-		.name = "properties",
-		.description = "properties (static)",
-		.enabled = false,
-		.version = 2,
-	},
-};
+defineJsLangModel(Js);
 
 static const keywordTable JsKeywordTable [] = {
 	/* keyword		keyword ID */
