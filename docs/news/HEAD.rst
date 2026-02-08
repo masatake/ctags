@@ -40,6 +40,7 @@ JavaScript:
     * A new field "properties" was added to indicate that a field or
       member of a class is static.
     * Class member names prefixed with # are recognized as private.
+	* Split JSX parser out
 
 C#:
 
@@ -75,6 +76,7 @@ The following parsers have been added:
 * Prolog
 * DBusService
 * GoMod
+* JSX: derived from JavaScript parser
 
 Changes about parser specific kinds, roles, fields, and extras
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
