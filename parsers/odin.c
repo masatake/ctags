@@ -123,6 +123,7 @@ typedef enum {
 	ODINTAG_FOREIGN,
 	ODINTAG_IMPORT_NAME,
 	ODINTAG_CCODE,
+	ODINTAG_ASMFILE,
 } odinKind;
 
 typedef enum {
@@ -132,6 +133,10 @@ typedef enum {
 typedef enum {
 	R_ODINTAG_CCODE_IMPORTED,
 } OdinCcodeRole;
+
+typedef enum {
+	R_ODINTAG_ASMFILE_IMPORTED,
+} OdinAsmfileRole;
 
 typedef enum {
 	F_FOREIGN,
@@ -144,6 +149,10 @@ static roleDefinition OdinPackageRoles [] = {
 
 static roleDefinition OdinCcodeRoles [] = {
 	{ true, "imported", "imported ccode via foreign" },
+};
+
+static roleDefinition OdinAsmfileRoles [] = {
+	{ true, "imported", "imported assembly file via foreign" },
 };
 
 static kindDefinition OdinKinds[] = {
@@ -162,6 +171,8 @@ static kindDefinition OdinKinds[] = {
 	{true, 'i', "importName", "import names"},
 	{true, 'C', "ccode", "C code",
 	 .referenceOnly = true, ATTACH_ROLES (OdinCcodeRoles)},
+	{true, 'A', "asmfile", "assembly files",
+	 .referenceOnly = true, ATTACH_ROLES (OdinAsmfileRoles)},
 };
 
 static fieldDefinition OdinFields[] = {
@@ -783,6 +794,14 @@ static void parseForeignBlockProcs (tokenInfo *const token, const int scope)
 	}
 }
 
+static bool isAsmfile(const char *fname)
+{
+	const char *ext = fileExtension (fname);
+	return (strcmp (ext, "asm") == 0
+			|| strcmp (ext, "s") == 0
+			|| strcmp (ext, "S") == 0);
+}
+
 static void parseForeign (tokenInfo *const token, const int scope)
 {
 	/* foreign import name "path"
@@ -809,7 +828,10 @@ static void parseForeign (tokenInfo *const token, const int scope)
 					readToken (token);
 					if (isType (token, TOKEN_STRING))
 					{
-						ccode = makeRefTag (token, ODINTAG_CCODE, R_ODINTAG_CCODE_IMPORTED);
+						bool asmfile = isAsmfile (vStringValue(token->string));
+						ccode = makeRefTag (token,
+											asmfile ? ODINTAG_ASMFILE : ODINTAG_CCODE,
+											asmfile ? R_ODINTAG_ASMFILE_IMPORTED : R_ODINTAG_CCODE_IMPORTED);
 						attachParserFieldToCorkEntry (ccode,
 													  OdinFields[F_FOREIGN].ftype,
 													  foreign_name);
@@ -819,7 +841,10 @@ static void parseForeign (tokenInfo *const token, const int scope)
 			}
 			else if (isType (token, TOKEN_STRING))
 			{
-				ccode = makeRefTag (token, ODINTAG_CCODE, R_ODINTAG_CCODE_IMPORTED);
+				bool asmfile = isAsmfile (vStringValue(token->string));
+				ccode = makeRefTag (token,
+									asmfile ? ODINTAG_ASMFILE : ODINTAG_CCODE,
+									asmfile ? R_ODINTAG_ASMFILE_IMPORTED : R_ODINTAG_CCODE_IMPORTED);
 				attachParserFieldToCorkEntry (ccode,
 											  OdinFields[F_FOREIGN].ftype,
 											  foreign_name);

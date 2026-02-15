@@ -31,3 +31,14 @@ foreign libc {
         epoll_create :: proc "c" (size: i32) -> i32 ---
     }
 }
+
+// Taken from https://odin-lang.org/docs/overview/#foreign-system
+foreign import lowlevel "lowlevel.asm"
+foreign lowlevel {
+    __get_flags :: proc "c" () -> u64 ---
+}
+
+foreign import lowlevelalt {
+    "lowlevelalt0.s",
+    "lowlevelalt0.S"
+}

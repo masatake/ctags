@@ -18,3 +18,9 @@ getres	input.odin	/^    getres :: proc "c" (w: ^i32, h: ^i32) -> (i32, i32) ---$
 printf	input.odin	/^    printf :: proc "c" (fmt: cstring, #c_vararg args: ..any) -> i32 ---$/;"	proc	line:28	package:ffi	signature:(fmt: cstring, #c_vararg args: ..any)	roles:def
 get_buf	input.odin	/^    get_buf :: proc "c" (n: i32) -> [4]i32 ---$/;"	proc	line:29	package:ffi	signature:(n: i32)	roles:def
 epoll_create	input.odin	/^        epoll_create :: proc "c" (size: i32) -> i32 ---$/;"	proc	line:31	package:ffi	signature:(size: i32)	roles:def
+lowlevel	input.odin	/^foreign import lowlevel "lowlevel.asm"$/;"	foreign	line:36	package:ffi	roles:def
+lowlevel.asm	input.odin	/^foreign import lowlevel "lowlevel.asm"$/;"	asmfile	line:36	roles:imported	foreign:lowlevel
+__get_flags	input.odin	/^    __get_flags :: proc "c" () -> u64 ---$/;"	proc	line:38	package:ffi	signature:()	roles:def
+lowlevelalt	input.odin	/^foreign import lowlevelalt {$/;"	foreign	line:41	package:ffi	roles:def
+lowlevelalt0.s	input.odin	/^    "lowlevelalt0.s",$/;"	asmfile	line:42	roles:imported	foreign:lowlevelalt
+lowlevelalt0.S	input.odin	/^    "lowlevelalt0.S"$/;"	asmfile	line:43	roles:imported	foreign:lowlevelalt
