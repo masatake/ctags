@@ -21,6 +21,7 @@
 #include "parse.h"
 #include "routines.h"
 #include "vstring.h"
+#include "xtag.h"
 
 #include <string.h>
 
@@ -148,6 +149,10 @@ typedef enum {
 	F_IMPORT_NAME,
 } OdinForeignField;
 
+typedef enum {
+	X_IMPLICIT_IMPORT_NAME,
+} OdinXtag;
+
 static roleDefinition OdinPackageRoles [] = {
 	{ true, "imported", "imported package" },
 };
@@ -196,6 +201,14 @@ static fieldDefinition OdinFields[] = {
 		.name = "importName",
 		.description = "import name specifying the package",
 		.enabled = true,
+	},
+};
+
+static xtagDefinition OdinXtags [] = {
+	{
+		.enabled = true,
+		.name = "implicitImportName",
+		.description = "implicitly defined import name like \"filepath\" in \"core:path/filepath\"",
 	},
 };
 
@@ -699,6 +712,35 @@ static int parseCollection (tokenInfo *const token)
 	return col_index;
 }
 
+static int tryMakeImplicitImportNameXtag (tokenInfo *const token)
+{
+	int index = CORK_NIL;
+
+	/* Looking for "f" in "collecion:lib/f" */
+	const char *implicit_name = strrchr (vStringValue (token->string), '/');
+
+	if (/* Reject "colle" in "colle/ction:lib" */
+		implicit_name && !strchr (implicit_name, ':')
+		/* Reject an empty name */
+		&& implicit_name[1] != '\0')
+	{
+		implicit_name++;
+
+		tokenInfo *implicitNameToken = newToken ();
+		copyToken (implicitNameToken, token);
+
+		vStringCopyS (implicitNameToken->string, implicit_name);
+		index = makeTag (implicitNameToken,
+						 ODINTAG_IMPORT_NAME, CORK_NIL, NULL);
+		tagEntryInfo *e = getEntryInCorkQueue (index);
+		markTagExtraBit (e, OdinXtags[X_IMPLICIT_IMPORT_NAME].xtype);
+
+		deleteToken (implicitNameToken);
+	}
+
+	return index;
+}
+
 static int makeImportedPackageRefTag (tokenInfo *const token,
 									  const char *import_name)
 {
@@ -714,6 +756,15 @@ static int makeImportedPackageRefTag (tokenInfo *const token,
 			attachParserFieldToCorkEntry (index,
 										  OdinFields[F_IMPORT_NAME].ftype,
 										  import_name);
+		else if (isXtagEnabled (OdinXtags[X_IMPLICIT_IMPORT_NAME].xtype))
+		{
+			int import_name_index = tryMakeImplicitImportNameXtag (token);
+			tagEntryInfo *e = getEntryInCorkQueue (import_name_index);
+			if (e)
+				attachParserFieldToCorkEntry (index,
+											  OdinFields[F_IMPORT_NAME].ftype,
+											  e->name);
+		}
 	}
 
 	return index;
@@ -1569,6 +1620,8 @@ extern parserDefinition *OdinParser (void)
 	def->kindCount = ARRAY_SIZE (OdinKinds);
 	def->fieldTable = OdinFields;
 	def->fieldCount = ARRAY_SIZE (OdinFields);
+	def->xtagTable = OdinXtags;
+	def->xtagCount = ARRAY_SIZE (OdinXtags);
 	def->extensions = extensions;
 	def->parser = findOdinTags;
 	def->initialize = initialize;

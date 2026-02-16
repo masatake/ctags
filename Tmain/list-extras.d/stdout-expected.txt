@@ -14,6 +14,7 @@ z       nulltag             yes     NONE        no      1 Include tags with empt
 -       doubleSharps        no      IPythonCell no      0 Include cells starting from ##
 -       configPrefixed      yes     Kconfig     no      0 prepend CONFIG_ to config names
 -       CppDef              no      Make        no      1 Include FOO in -DFOO as as a name of CPreProcessor macro
+-       implicitImportName  yes     Odin        no      0 implicitly defined import name like "filepath" in "core:path/filepath"
 -       guessedFromFileName yes     PkgConfig   no      0 the guessed package name of the .pc file
 -       arityAppended       yes     Prolog      no      0 Include predicates with their arities
 -       funcmap             yes     QemuHX      no      0 Include mapping SQMP to C function name
@@ -34,6 +35,7 @@ z	nulltag	yes	NONE	no	1	Include tags with empty strings as their names
 -	doubleSharps	no	IPythonCell	no	0	Include cells starting from ##
 -	configPrefixed	yes	Kconfig	no	0	prepend CONFIG_ to config names
 -	CppDef	no	Make	no	1	Include FOO in -DFOO as as a name of CPreProcessor macro
+-	implicitImportName	yes	Odin	no	0	implicitly defined import name like "filepath" in "core:path/filepath"
 -	guessedFromFileName	yes	PkgConfig	no	0	the guessed package name of the .pc file
 -	arityAppended	yes	Prolog	no	0	Include predicates with their arities
 -	funcmap	yes	QemuHX	no	0	Include mapping SQMP to C function name

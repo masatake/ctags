@@ -1,8 +1,14 @@
 imports	input.odin	/^package imports$/;"	package	roles:def
-core	input.odin	/^import "core:fmt"$/;"	collection	roles:referenced
-fmt	input.odin	/^import "core:fmt"$/;"	package	collection:core	roles:imported
-core	input.odin	/^import "core:os"$/;"	collection	roles:referenced
-os	input.odin	/^import "core:os"$/;"	package	collection:core	roles:imported
+core	input.odin	/^import "core:fmt"$/;"	collection	roles:referenced	extras:reference
+fmt	input.odin	/^import "core:fmt"$/;"	package	collection:core	roles:imported	extras:reference
+core	input.odin	/^import "core:os"$/;"	collection	roles:referenced	extras:reference
+os	input.odin	/^import "core:os"$/;"	package	collection:core	roles:imported	extras:reference
 m	input.odin	/^import m "core:math"$/;"	importName	roles:def
-core	input.odin	/^import m "core:math"$/;"	collection	roles:referenced
-math	input.odin	/^import m "core:math"$/;"	package	collection:core	roles:imported	importName:m
+core	input.odin	/^import m "core:math"$/;"	collection	roles:referenced	extras:reference
+math	input.odin	/^import m "core:math"$/;"	package	collection:core	roles:imported	extras:reference	importName:m
+col	input.odin	/^import "col:lib\/sublib0"$/;"	collection	roles:referenced	extras:reference
+lib/sublib0	input.odin	/^import "col:lib\/sublib0"$/;"	package	collection:col	roles:imported	extras:reference	importName:sublib0
+sublib0	input.odin	/^import "col:lib\/sublib0"$/;"	importName	roles:def	extras:implicitImportName
+mysublib	input.odin	/^import mysublib "col:lib\/sublib1"$/;"	importName	roles:def
+col	input.odin	/^import mysublib "col:lib\/sublib1"$/;"	collection	roles:referenced	extras:reference
+lib/sublib1	input.odin	/^import mysublib "col:lib\/sublib1"$/;"	package	collection:col	roles:imported	extras:reference	importName:mysublib
