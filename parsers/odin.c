@@ -815,9 +815,10 @@ static int makeForeignImportRefTag (tokenInfo *const token,
 							asmfile ? ODINTAG_ASMFILE : ODINTAG_CCODE,
 							asmfile ? R_ODINTAG_ASMFILE_IMPORTED : R_ODINTAG_CCODE_IMPORTED,
 							CORK_NIL);
-	attachParserFieldToCorkEntry (index,
-								  OdinFields[F_FOREIGN].ftype,
-								  foreign_name);
+	if (foreign_name)
+		attachParserFieldToCorkEntry (index,
+									  OdinFields[F_FOREIGN].ftype,
+									  foreign_name);
 	return index;
 }
 
