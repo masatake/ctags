@@ -635,9 +635,9 @@ static int makeTag (tokenInfo *const token, const odinKind kind,
 }
 
 static int makeRefTag (tokenInfo *const token, const odinKind kind,
-					   const int role)
+					   const int role, const int scope)
 {
-	return makeTagFull (token, kind, CORK_NIL, NULL, role);
+	return makeTagFull (token, kind, scope, NULL, role);
 }
 
 static int parsePackage (tokenInfo *const token)
@@ -673,7 +673,8 @@ static void parseImport (tokenInfo *const token)
 		if (isType (token, TOKEN_STRING))
 		{
 			makeTag (nameToken, ODINTAG_IMPORT_NAME, CORK_NIL, NULL);
-			int package = makeRefTag (token, ODINTAG_PACKAGE, R_ODINTAG_PACKAGE_IMPORTED);
+			int package = makeRefTag (token, ODINTAG_PACKAGE, R_ODINTAG_PACKAGE_IMPORTED,
+									  CORK_NIL);
 			attachParserFieldToCorkEntry (package,
 										  OdinFields[F_IMPORT_NAME].ftype,
 										  vStringValue (nameToken->string));
@@ -682,7 +683,8 @@ static void parseImport (tokenInfo *const token)
 	}
 	else if (isType (token, TOKEN_STRING))
 	{
-		makeRefTag (token, ODINTAG_PACKAGE, R_ODINTAG_PACKAGE_IMPORTED);
+		makeRefTag (token, ODINTAG_PACKAGE, R_ODINTAG_PACKAGE_IMPORTED,
+					CORK_NIL);
 	}
 }
 
@@ -811,7 +813,8 @@ static int makeForeignImportRefTag (tokenInfo *const token,
 	bool asmfile = isAsmfile (vStringValue (token->string));
 	int index = makeRefTag (token,
 							asmfile ? ODINTAG_ASMFILE : ODINTAG_CCODE,
-							asmfile ? R_ODINTAG_ASMFILE_IMPORTED : R_ODINTAG_CCODE_IMPORTED);
+							asmfile ? R_ODINTAG_ASMFILE_IMPORTED : R_ODINTAG_CCODE_IMPORTED,
+							CORK_NIL);
 	attachParserFieldToCorkEntry (index,
 								  OdinFields[F_FOREIGN].ftype,
 								  foreign_name);
