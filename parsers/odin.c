@@ -124,6 +124,7 @@ typedef enum {
 	ODINTAG_IMPORT_NAME,
 	ODINTAG_CCODE,
 	ODINTAG_ASMFILE,
+	ODINTAG_COLLECTION,
 } odinKind;
 
 typedef enum {
@@ -137,6 +138,10 @@ typedef enum {
 typedef enum {
 	R_ODINTAG_ASMFILE_IMPORTED,
 } OdinAsmfileRole;
+
+typedef enum {
+	R_ODINTAG_COLLECTION_REFERENCED,
+} OdinCollectionRole;
 
 typedef enum {
 	F_FOREIGN,
@@ -153,6 +158,10 @@ static roleDefinition OdinCcodeRoles [] = {
 
 static roleDefinition OdinAsmfileRoles [] = {
 	{ true, "imported", "imported assembly file via foreign" },
+};
+
+static roleDefinition OdinCollectionRoles [] = {
+	{ true, "referenced", "referenced in import statment" },
 };
 
 static kindDefinition OdinKinds[] = {
@@ -173,6 +182,8 @@ static kindDefinition OdinKinds[] = {
 	 .referenceOnly = true, ATTACH_ROLES (OdinCcodeRoles)},
 	{true, 'A', "asmfile", "assembly files",
 	 .referenceOnly = true, ATTACH_ROLES (OdinAsmfileRoles)},
+	{true, 'C', "collection", "collection",
+	 .referenceOnly = true, ATTACH_ROLES (OdinCollectionRoles)},
 };
 
 static fieldDefinition OdinFields[] = {
@@ -658,6 +669,56 @@ static bool nameHasLower (const vString *name)
 	return false;
 }
 
+static int parseCollection (tokenInfo *const token)
+{
+	if (vStringLength (token->string) == 0)
+		return CORK_NIL;
+
+	int col_index = CORK_NIL;
+	const char *col_sep = strchr (vStringValue (token->string), ':');
+
+	if (col_sep)
+	{
+		/* Extract "collection" in "collection:lib" */
+		size_t seppos = col_sep - vStringValue (token->string);
+
+		tokenInfo *col_token = newToken ();
+		copyToken (col_token, token);
+		vStringTruncateTrailing (col_token->string, seppos);
+
+		/* Update the token pointing to "lib" in "collection:lib". */
+		vStringTruncateLeading (token->string, seppos + 1);
+
+		if (!vStringIsEmpty (col_token->string))
+			col_index = makeRefTag (col_token, ODINTAG_COLLECTION,
+									R_ODINTAG_COLLECTION_REFERENCED,
+									CORK_NIL);
+		deleteToken (col_token);
+	}
+
+	return col_index;
+}
+
+static int makeImportedPackageRefTag (tokenInfo *const token,
+									  const char *import_name)
+{
+	int index = CORK_NIL;
+	int col_index = parseCollection(token);
+
+	if (!vStringIsEmpty (token->string))
+	{
+		index = makeRefTag (token, ODINTAG_PACKAGE, R_ODINTAG_PACKAGE_IMPORTED,
+							col_index);
+
+		if (import_name)
+			attachParserFieldToCorkEntry (index,
+										  OdinFields[F_IMPORT_NAME].ftype,
+										  import_name);
+	}
+
+	return index;
+}
+
 static void parseImport (tokenInfo *const token)
 {
 	/* import "path"
@@ -673,18 +734,14 @@ static void parseImport (tokenInfo *const token)
 		if (isType (token, TOKEN_STRING))
 		{
 			makeTag (nameToken, ODINTAG_IMPORT_NAME, CORK_NIL, NULL);
-			int package = makeRefTag (token, ODINTAG_PACKAGE, R_ODINTAG_PACKAGE_IMPORTED,
-									  CORK_NIL);
-			attachParserFieldToCorkEntry (package,
-										  OdinFields[F_IMPORT_NAME].ftype,
-										  vStringValue (nameToken->string));
+			makeImportedPackageRefTag (token,
+									   vStringValue (nameToken->string));
 		}
 		deleteToken (nameToken);
 	}
 	else if (isType (token, TOKEN_STRING))
 	{
-		makeRefTag (token, ODINTAG_PACKAGE, R_ODINTAG_PACKAGE_IMPORTED,
-					CORK_NIL);
+		makeImportedPackageRefTag (token, NULL);
 	}
 }
 
@@ -807,18 +864,22 @@ static bool isAsmfile (const char *fname)
 static int makeForeignImportRefTag (tokenInfo *const token,
 									const char *foreign_name)
 {
-	if (vStringLength (token->string) == 0)
-		return CORK_NIL;
+	int index = CORK_NIL;
+	int col_index = parseCollection(token);
 
-	bool asmfile = isAsmfile (vStringValue (token->string));
-	int index = makeRefTag (token,
+	if (!vStringIsEmpty (token->string))
+	{
+		bool asmfile = isAsmfile (vStringValue (token->string));
+		index = makeRefTag (token,
 							asmfile ? ODINTAG_ASMFILE : ODINTAG_CCODE,
 							asmfile ? R_ODINTAG_ASMFILE_IMPORTED : R_ODINTAG_CCODE_IMPORTED,
-							CORK_NIL);
-	if (foreign_name)
-		attachParserFieldToCorkEntry (index,
-									  OdinFields[F_FOREIGN].ftype,
-									  foreign_name);
+							col_index);
+		if (foreign_name)
+			attachParserFieldToCorkEntry (index,
+										  OdinFields[F_FOREIGN].ftype,
+										  foreign_name);
+	}
+
 	return index;
 }
 

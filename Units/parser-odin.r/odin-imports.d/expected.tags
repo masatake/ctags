@@ -1,5 +1,8 @@
 imports	input.odin	/^package imports$/;"	package	roles:def
-core:fmt	input.odin	/^import "core:fmt"$/;"	package	roles:imported
-core:os	input.odin	/^import "core:os"$/;"	package	roles:imported
+core	input.odin	/^import "core:fmt"$/;"	collection	roles:referenced
+fmt	input.odin	/^import "core:fmt"$/;"	package	collection:core	roles:imported
+core	input.odin	/^import "core:os"$/;"	collection	roles:referenced
+os	input.odin	/^import "core:os"$/;"	package	collection:core	roles:imported
 m	input.odin	/^import m "core:math"$/;"	importName	roles:def
-core:math	input.odin	/^import m "core:math"$/;"	package	roles:imported	importName:m
+core	input.odin	/^import m "core:math"$/;"	collection	roles:referenced
+math	input.odin	/^import m "core:math"$/;"	package	collection:core	roles:imported	importName:m

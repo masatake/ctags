@@ -94,6 +94,7 @@ NSIS                    i/script          included           on        0 include
 Nftables                R/ruleset         included           on        0 included ruleset
 Nftables                f/family          referenced         off       0 referenced somehow
 Odin                    A/asmfile         imported           on        0 imported assembly file via foreign
+Odin                    C/collection      referenced         on        0 referenced in import statment
 Odin                    L/ccode           imported           on        0 imported ccode via foreign
 Odin                    p/package         imported           on        0 imported package
 Perl                    M/module          unused             on        0 specified in `no' built-in function
@@ -250,6 +251,7 @@ NSIS                    i/script          included           on        0 include
 Nftables                R/ruleset         included           on        0 included ruleset
 Nftables                f/family          referenced         off       0 referenced somehow
 Odin                    A/asmfile         imported           on        0 imported assembly file via foreign
+Odin                    C/collection      referenced         on        0 referenced in import statment
 Odin                    L/ccode           imported           on        0 imported ccode via foreign
 Odin                    p/package         imported           on        0 imported package
 Perl                    M/module          unused             on        0 specified in `no' built-in function
