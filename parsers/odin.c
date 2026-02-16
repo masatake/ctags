@@ -169,7 +169,7 @@ static kindDefinition OdinKinds[] = {
 	{true, 't', "type", "type aliases"},
 	{true, 'g', "foreign", "foreign imports"},
 	{true, 'i', "importName", "import names"},
-	{true, 'C', "ccode", "C code",
+	{true, 'L', "ccode", "C code",
 	 .referenceOnly = true, ATTACH_ROLES (OdinCcodeRoles)},
 	{true, 'A', "asmfile", "assembly files",
 	 .referenceOnly = true, ATTACH_ROLES (OdinAsmfileRoles)},
