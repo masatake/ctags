@@ -48,3 +48,10 @@ foreign import lowlevelalt {
     "lowlevelalt0.s",
     "lowlevelalt0.S"
 }
+
+/* The collection is an empty string. The parser should not crash. */
+foreign import broken0 ":broken0.so"
+foreign import broken1 ":broken1.s"
+
+/* The ccode (or asmfile) is an empty string. The parser should not crash. */
+foreign import broken2 "system:"
