@@ -1,24 +1,24 @@
 ffi	input.odin	/^package ffi$/;"	package	line:1	roles:def
 libc	input.odin	/^foreign import libc "system:libc.so"$/;"	foreign	line:3	package:ffi	roles:def
 system	input.odin	/^foreign import libc "system:libc.so"$/;"	collection	line:3	roles:referenced
-libc.so	input.odin	/^foreign import libc "system:libc.so"$/;"	ccode	line:3	collection:system	roles:imported	foreign:libc
+libc.so	input.odin	/^foreign import libc "system:libc.so"$/;"	ccode	line:3	collection:system	roles:imported	importName:libc
 puts	input.odin	/^    puts :: proc "c" (s: cstring) -> i32 ---$/;"	proc	line:6	package:ffi	signature:(s: cstring)	roles:def
 exit	input.odin	/^    exit :: proc "c" (code: i32) ---$/;"	proc	line:7	package:ffi	signature:(code: i32)	roles:def
 errno	input.odin	/^    errno: i32$/;"	var	line:8	package:ffi	roles:def
 signal_handler	input.odin	/^    signal_handler: proc "c" (sig: i32)$/;"	var	line:9	package:ffi	roles:def
 mruby	input.odin	/^foreign import mruby "libmruby.a"$/;"	foreign	line:12	package:ffi	roles:def
-libmruby.a	input.odin	/^foreign import mruby "libmruby.a"$/;"	ccode	line:12	roles:imported	foreign:mruby
+libmruby.a	input.odin	/^foreign import mruby "libmruby.a"$/;"	ccode	line:12	roles:imported	importName:mruby
 open	input.odin	/^    open :: proc() -> rawptr ---$/;"	proc	line:17	package:ffi	signature:()	roles:def
 close	input.odin	/^    close :: proc(state: rawptr) ---$/;"	proc	line:18	package:ffi	signature:(state: rawptr)	roles:def
 gl	input.odin	/^foreign import gl { "system:opengl32.lib", "system:glu32.lib" }$/;"	foreign	line:21	package:ffi	roles:def
 system	input.odin	/^foreign import gl { "system:opengl32.lib", "system:glu32.lib" }$/;"	collection	line:21	roles:referenced
-opengl32.lib	input.odin	/^foreign import gl { "system:opengl32.lib", "system:glu32.lib" }$/;"	ccode	line:21	collection:system	roles:imported	foreign:gl
+opengl32.lib	input.odin	/^foreign import gl { "system:opengl32.lib", "system:glu32.lib" }$/;"	ccode	line:21	collection:system	roles:imported	importName:gl
 system	input.odin	/^foreign import gl { "system:opengl32.lib", "system:glu32.lib" }$/;"	collection	line:21	roles:referenced
-glu32.lib	input.odin	/^foreign import gl { "system:opengl32.lib", "system:glu32.lib" }$/;"	ccode	line:21	collection:system	roles:imported	foreign:gl
+glu32.lib	input.odin	/^foreign import gl { "system:opengl32.lib", "system:glu32.lib" }$/;"	ccode	line:21	collection:system	roles:imported	importName:gl
 LIB	input.odin	/^LIB :: ""$/;"	const	line:23	package:ffi	roles:def
 stbi	input.odin	/^foreign import stbi {$/;"	foreign	line:25	package:ffi	roles:def
 system	input.odin	/^    LIB when LIB != "" else "system:stb_image",$/;"	collection	line:26	roles:referenced
-stb_image	input.odin	/^    LIB when LIB != "" else "system:stb_image",$/;"	ccode	line:26	collection:system	roles:imported	foreign:stbi
+stb_image	input.odin	/^    LIB when LIB != "" else "system:stb_image",$/;"	ccode	line:26	collection:system	roles:imported	importName:stbi
 internal_init	input.odin	/^    internal_init :: proc "c" () ---$/;"	proc	line:31	package:ffi	signature:()	roles:def
 readv	input.odin	/^    readv :: proc "c" (fd: i32, iov: rawptr, cnt: i32) -> i32 ---$/;"	proc	line:32	package:ffi	signature:(fd: i32, iov: rawptr, cnt: i32)	roles:def
 getres	input.odin	/^    getres :: proc "c" (w: ^i32, h: ^i32) -> (i32, i32) ---$/;"	proc	line:33	package:ffi	signature:(w: ^i32, h: ^i32)	roles:def
@@ -26,14 +26,14 @@ printf	input.odin	/^    printf :: proc "c" (fmt: cstring, #c_vararg args: ..any)
 get_buf	input.odin	/^    get_buf :: proc "c" (n: i32) -> [4]i32 ---$/;"	proc	line:35	package:ffi	signature:(n: i32)	roles:def
 epoll_create	input.odin	/^        epoll_create :: proc "c" (size: i32) -> i32 ---$/;"	proc	line:37	package:ffi	signature:(size: i32)	roles:def
 lowlevel	input.odin	/^foreign import lowlevel "lowlevel.asm"$/;"	foreign	line:42	package:ffi	roles:def
-lowlevel.asm	input.odin	/^foreign import lowlevel "lowlevel.asm"$/;"	asmfile	line:42	roles:imported	foreign:lowlevel
+lowlevel.asm	input.odin	/^foreign import lowlevel "lowlevel.asm"$/;"	asmfile	line:42	roles:imported	importName:lowlevel
 __get_flags	input.odin	/^    __get_flags :: proc "c" () -> u64 ---$/;"	proc	line:44	package:ffi	signature:()	roles:def
 lowlevelalt	input.odin	/^foreign import lowlevelalt {$/;"	foreign	line:47	package:ffi	roles:def
-lowlevelalt0.s	input.odin	/^    "lowlevelalt0.s",$/;"	asmfile	line:48	roles:imported	foreign:lowlevelalt
-lowlevelalt0.S	input.odin	/^    "lowlevelalt0.S"$/;"	asmfile	line:49	roles:imported	foreign:lowlevelalt
+lowlevelalt0.s	input.odin	/^    "lowlevelalt0.s",$/;"	asmfile	line:48	roles:imported	importName:lowlevelalt
+lowlevelalt0.S	input.odin	/^    "lowlevelalt0.S"$/;"	asmfile	line:49	roles:imported	importName:lowlevelalt
 broken0	input.odin	/^foreign import broken0 ":broken0.so"$/;"	foreign	line:53	package:ffi	roles:def
-broken0.so	input.odin	/^foreign import broken0 ":broken0.so"$/;"	ccode	line:53	roles:imported	foreign:broken0
+broken0.so	input.odin	/^foreign import broken0 ":broken0.so"$/;"	ccode	line:53	roles:imported	importName:broken0
 broken1	input.odin	/^foreign import broken1 ":broken1.s"$/;"	foreign	line:54	package:ffi	roles:def
-broken1.s	input.odin	/^foreign import broken1 ":broken1.s"$/;"	asmfile	line:54	roles:imported	foreign:broken1
+broken1.s	input.odin	/^foreign import broken1 ":broken1.s"$/;"	asmfile	line:54	roles:imported	importName:broken1
 broken2	input.odin	/^foreign import broken2 "system:"$/;"	foreign	line:57	package:ffi	roles:def
 system	input.odin	/^foreign import broken2 "system:"$/;"	collection	line:57	roles:referenced

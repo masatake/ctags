@@ -145,7 +145,6 @@ typedef enum {
 } OdinCollectionRole;
 
 typedef enum {
-	F_FOREIGN,
 	F_IMPORT_NAME,
 } OdinForeignField;
 
@@ -193,13 +192,8 @@ static kindDefinition OdinKinds[] = {
 
 static fieldDefinition OdinFields[] = {
 	{
-		.name = "foreign",
-		.description = "foreign name given to the ccode",
-		.enabled = true,
-	},
-	{
 		.name = "importName",
-		.description = "import name specifying the package",
+		.description = "import name for the imported entity ",
 		.enabled = true,
 	},
 };
@@ -927,7 +921,7 @@ static int makeForeignImportRefTag (tokenInfo *const token,
 							col_index);
 		if (foreign_name)
 			attachParserFieldToCorkEntry (index,
-										  OdinFields[F_FOREIGN].ftype,
+										  OdinFields[F_IMPORT_NAME].ftype,
 										  foreign_name);
 	}
 
